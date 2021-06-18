@@ -10,9 +10,14 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.LevelListDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -20,6 +25,7 @@ import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.media.MediaPlayer;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -32,6 +38,7 @@ import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.widget.AutoCompleteTextView;
@@ -105,6 +112,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     private boolean flag_fall = false,flag_buffer_ready = false,f_send_msg = true,permissionGranted, mBound = false;
     private MyReceiver myReceiver;
     private LocationUpdatesService mService = null;
+    private RelativeLayout relativeLayout;
     //private BottomNavigationView bottomNavigationView;
     String request_status = "request_pending";
     DatabaseReference requestref;
@@ -115,6 +123,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     DialogBoxes dialogBoxes;
     Map<String, String> myContacts = new HashMap<>(1);
     SharedPreferences sh;
+    MediaPlayer player;
 
     // Monitors the state of the connection to the service.
     public ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -188,6 +197,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         companion_circle=(ImageView) findViewById(R.id.display_companion);
         companion_circle.setOnClickListener(this);
         mCompanionAddBtn.setOnClickListener(this::onClick);
+        relativeLayout=findViewById(R.id.relative);
         mSettingIcon = findViewById(R.id.setting_icon);
         mSettingIcon.setOnClickListener(this::onClick);
        // bottomNavigationView=findViewById(R.id.bottomNavigationView);
@@ -425,7 +435,11 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                 @Override
                                 public void onComplete(@NonNull Task task) {
                                     if(task.isSuccessful()){
-                                        moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), 15f, address.getAddressLine(0));
+                                       // moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), 15f, address.getAddressLine(0));
+                                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(address.getLatitude(), address.getLongitude()),15f));
+                                        MarkerOptions options = new MarkerOptions().position(new LatLng(address.getLatitude(), address.getLongitude())).title(address.getAddressLine(0));
+                                        options.icon(BitmapDescriptorFactory.fromBitmap(resizeMapIcons("destination_marker",120,180)));
+                                        mMap.addMarker(options);
                                     }
                                 }
                             });
@@ -621,7 +635,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                             Double lat=Double.parseDouble(snapshot.child("latitude").getValue().toString());
                             Double lon=Double.parseDouble(snapshot.child("longitude").getValue().toString());
                             MarkerOptions options = new MarkerOptions().position(new LatLng(lat,lon)).title("Destination Location");
-                            options.icon(BitmapDescriptorFactory.fromResource(R.drawable.locationmarker));
+                            options.icon(BitmapDescriptorFactory.fromBitmap(resizeMapIcons("destination_marker",100,150)));
                             mMap.addMarker(options);
                             //getRoutToMarker(new LatLng(newLat[0],newLong[0]),new LatLng(lat,lon));
                         }
@@ -650,12 +664,17 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
 
     }
 
-    public static void moveCamera(LatLng latLng, float zoom, String title) {
+    public void moveCamera(LatLng latLng, float zoom, String title) {
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,zoom));
         MarkerOptions options = new MarkerOptions().position(latLng).title(title);
-        options.icon(BitmapDescriptorFactory.fromResource(R.drawable.locationmarker));
+        options.icon(BitmapDescriptorFactory.fromBitmap(resizeMapIcons("current_marker",100,150)));
         mMap.addMarker(options);
 
+    }
+    public Bitmap resizeMapIcons(String iconName,int width, int height){
+        Bitmap imageBitmap = BitmapFactory.decodeResource(getResources(),getResources().getIdentifier(iconName, "drawable", getPackageName()));
+        Bitmap resizedBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
+        return resizedBitmap;
     }
 
 
@@ -731,8 +750,6 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
             if (flag_fall) {
                 if (f_send_msg) {
                     f_send_msg = false;
-
-                    playTone();
                     showDialog();
                     //send_sms();
                 }
@@ -766,11 +783,15 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                 public void onFinish() {
                     if (f_send_msg) {
                         f_send_msg = false;
-                        //playTone();
+                        playTone();
                         //send_sms();
                     }
                     textView.setText("SOS triggered!");
                     dialog.dismiss();
+                    relativeLayout.setBackground(getResources().getDrawable(R.drawable.alert_btn));
+                    mSettingIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_volume_off));
+                    mSearchLocation.setHint("Alert Mode");
+                    mSearchLocation.setGravity(Gravity.CENTER);
                 }
             }.start();
             progressBar.setOnClickListener(new View.OnClickListener() {
@@ -782,9 +803,41 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
             dialog.show();
         }
         public void playTone() {
-            Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-            Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-            r.play();
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+
+                    AssetFileDescriptor afd = null;
+                    try {
+                        afd = getAssets().openFd("police_siren.mp3");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    player = new MediaPlayer();
+                    try {
+                        player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        player.prepare();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    player.start();
+                    player.setLooping(true);
+
+                    try {
+                        Thread.sleep(10000);
+                       // player.stop();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    //      player.stop();
+                }
+            });
+            t.start();
         }
     }
 
@@ -810,5 +863,5 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
 
         StrictMode.setThreadPolicy(policy);
     }
-    
+
 }
