@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/notification_layout"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:background="@android:color/transparent"
+android:orientation="vertical"
+app:layout_constraintHeight_max="wrap">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/custom_bg">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_below="@+id/title"
+        android:gravity="center"
+        android:text="The Protector"
+        android:textAlignment="center"
+        android:textColor="@android:color/black"
+        android:textSize="17sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/back_ll"
+        android:orientation="vertical"
+        android:padding="5dp">
+
+        <TextView
+            android:id="@+id/body_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:textAlignment="center"
+
+            android:textColor="@android:color/black"
+            android:textSize="17sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/back_ll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@+id/end_time_recycle"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:background="#8F8F8F" />
+        <LinearLayout
+            android:id="@+id/rebooking_back_button_ll"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/ok_btn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".49"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="Yes"
+                android:textAlignment="center"
+                android:textColor="#FF6363"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+            <View
+                android:layout_width="0dp"
+                android:layout_weight="0.004"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/end_time_recycle"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:background="#8F8F8F" />
+            <TextView
+                android:id="@+id/cancel_btn"
+                android:layout_width="0dp"
+                android:layout_weight=".5"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dp"
+                android:textAlignment="center"
+                android:paddingRight="10dp"
+                android:text="Not Now"
+                android:textColor="#7BC5FF"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
+</RelativeLayout>
