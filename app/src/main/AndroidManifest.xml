@@ -14,9 +14,9 @@
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-    <uses-permission android:name="android.permission.CALL_PHONE"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:name=".App"
@@ -26,6 +26,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TheProtector">
+        <activity android:name=".LoginActivity" android:theme="@style/Theme.MaterialComponents.Light.NoActionBar"></activity>
         <activity android:name=".AllEmergencyContacts" />
         <activity android:name=".ContactPicker" />
 
@@ -49,10 +50,11 @@
             android:name=".FallDetector"
             android:enabled="true"
             android:exported="true" />
-            -->
-        <service android:name=".LocationUpdatesService"
+        -->
+        <service
+            android:name=".LocationUpdatesService"
             android:enabled="true"
-            android:exported="true"/>
+            android:exported="true" />
 
         <activity
             android:name=".Settings"

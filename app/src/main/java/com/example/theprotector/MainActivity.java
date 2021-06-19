@@ -42,12 +42,16 @@ public class MainActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         FirebaseApp.initializeApp(MainActivity.this);
+        /*
         FirebaseUser firebaseUser= FirebaseAuth.getInstance().getCurrentUser();
         if(firebaseUser!=null){
             startActivity(new Intent(this,UserMapActivity.class));
         }else {
             startActivity(new Intent(this, Login.class));
         }
+
+         */
+        startActivity(new Intent(this, LoginActivity.class));
     }
 
 }
