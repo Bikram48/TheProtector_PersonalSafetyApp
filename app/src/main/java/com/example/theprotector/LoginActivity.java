@@ -10,8 +10,6 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.example.theprotector.viewmodel.LoginRegisterViewModel;
-import com.example.theprotector.views.Login;
-import com.example.theprotector.views.Signup;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseUser;
@@ -25,12 +23,13 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FirebaseApp.initializeApp(LoginActivity.this);
         setContentView(R.layout.activity_login2);
+        getSupportActionBar().setBackgroundDrawable(getDrawable(R.drawable.login_background));
+        FirebaseApp.initializeApp(LoginActivity.this);
         emailEditTxt=findViewById(R.id.emailEditTxt);
         passwordEditTxt=findViewById(R.id.passwordEditTxt);
-        signupSuggestion=findViewById(R.id.registerBtn);
-        loginBtn=findViewById(R.id.loginBtn);
+        signupSuggestion=findViewById(R.id.loginBtn_Two);
+        loginBtn=findViewById(R.id.loginBtn_One);
         loginRegisterViewModel= ViewModelProviders.of(this).get(LoginRegisterViewModel.class);
         loginRegisterViewModel.getUserMutableLiveData().observe(this, new Observer<FirebaseUser>() {
             @Override
@@ -51,7 +50,7 @@ public class LoginActivity extends AppCompatActivity {
         signupSuggestion.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(LoginActivity.this, Signup.class));
+                startActivity(new Intent(LoginActivity.this, SignupActivity.class));
             }
         });
     }

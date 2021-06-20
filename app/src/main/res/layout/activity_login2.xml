@@ -70,7 +70,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/loginBtn"
+            android:id="@+id/loginBtn_One"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -83,13 +83,13 @@
             app:layout_constraintTop_toBottomOf="@+id/textInputLayout3" />
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/registerBtn"
+            android:id="@+id/loginBtn_Two"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:background="#00000000"
             android:text="Don't Have an account? Signup"
-            app:layout_constraintEnd_toEndOf="@+id/loginBtn"
-            app:layout_constraintStart_toStartOf="@+id/loginBtn"
-            app:layout_constraintTop_toBottomOf="@+id/loginBtn" />
+            app:layout_constraintEnd_toEndOf="@+id/loginBtn_One"
+            app:layout_constraintStart_toStartOf="@+id/loginBtn_One"
+            app:layout_constraintTop_toBottomOf="@+id/loginBtn_One" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

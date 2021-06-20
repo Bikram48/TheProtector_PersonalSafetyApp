@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.ProgressBar;
 
 import com.example.theprotector.viewmodel.LoginRegisterViewModel;
-import com.example.theprotector.views.Login;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -29,13 +28,14 @@ public class SignupActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup2);
+        getSupportActionBar().setBackgroundDrawable(getDrawable(R.drawable.login_background));
         fullNameEditTxt=findViewById(R.id.fullNameEditTxt);
         emailEditTxt=findViewById(R.id.emailEditTxt);
         passwordEditTxt=findViewById(R.id.passwordEditTxt);
-        registerBtn=findViewById(R.id.registerBtn);
-        loginBtn=findViewById(R.id.registerBtn);
+        registerBtn=findViewById(R.id.loginBtn_Two);
+        loginBtn=findViewById(R.id.loginBtn_Two);
         phoneNumber=getIntent().getStringExtra("phone");
-        mProgressBarSignup=findViewById(R.id.progressbar_signup);
+        mProgressBarSignup=findViewById(R.id.progressBar2);
         loginRegisterViewModel= ViewModelProviders.of(this).get(LoginRegisterViewModel.class);
         loginRegisterViewModel.getUserMutableLiveData().observe(this, new Observer<FirebaseUser>() {
             @Override
@@ -60,7 +60,7 @@ public class SignupActivity extends AppCompatActivity {
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(SignupActivity.this, Login.class));
+                startActivity(new Intent(SignupActivity.this, LoginActivity.class));
             }
         });
     }

@@ -39,8 +39,9 @@ public class MultiLoginOption extends AppCompatActivity implements View.OnClickL
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_multi_login_option);
+        getSupportActionBar().setBackgroundDrawable(getDrawable(R.drawable.login_background));
         mPhoneNumber=findViewById(R.id.phone_number);
-        secretCodeSenderBtn=findViewById(R.id.registerBtn);
+        secretCodeSenderBtn=findViewById(R.id.loginBtn_Two);
         progressBar=findViewById(R.id.progress_bar);
         emailBtn=findViewById(R.id.email_login_btn);
         title=findViewById(R.id.textView5);

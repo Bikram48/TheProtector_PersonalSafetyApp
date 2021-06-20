@@ -41,7 +41,7 @@
             android:layout_marginTop="10dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/registerBtn" />
+            app:layout_constraintTop_toBottomOf="@+id/loginBtn_Two" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputLayout"
@@ -109,7 +109,7 @@
             app:layout_constraintTop_toBottomOf="@+id/textInputLayout3" />
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/registerBtn"
+            android:id="@+id/loginBtn_Two"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:background="#00000000"

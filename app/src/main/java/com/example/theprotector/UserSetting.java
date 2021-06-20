@@ -9,9 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
-import com.example.theprotector.views.Login;
 import com.google.firebase.auth.FirebaseAuth;
 
 
@@ -36,7 +34,7 @@ public class UserSetting extends Fragment implements View.OnClickListener{
         switch (v.getId()){
             case R.id.logout_layout:
                 FirebaseAuth.getInstance().signOut();
-                startActivity(new Intent(getContext(), Login.class));
+                startActivity(new Intent(getContext(), LoginActivity.class));
                 break;
         }
     }
