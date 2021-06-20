@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import com.chaos.view.PinView;
 import com.example.theprotector.R;
+import com.example.theprotector.SignupActivity;
 import com.example.theprotector.UserMapActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -24,6 +25,7 @@ public class OtpCodeActivity extends AppCompatActivity implements View.OnClickLi
     private PinView mOtpCode;
     private String phoneNumber;
     private String otpcode;
+    private String status;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,12 +33,14 @@ public class OtpCodeActivity extends AppCompatActivity implements View.OnClickLi
         mOtpCode=findViewById(R.id.otpcode);
         phoneNumber=getIntent().getStringExtra("phoneNumber");
         otpcode=getIntent().getStringExtra("otp_code");
+        status=getIntent().getStringExtra("page");
         mSubmitBtn=findViewById(R.id.submitBtn);
         mSubmitBtn.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
+        Intent intent=new Intent(OtpCodeActivity.this,SignupActivity.class);
         String getOtpcode=mOtpCode.getText().toString();
         Toast.makeText(this, mOtpCode.getText().toString(), Toast.LENGTH_SHORT).show();
         if(otpcode!=null){
@@ -45,13 +49,16 @@ public class OtpCodeActivity extends AppCompatActivity implements View.OnClickLi
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if(task.isSuccessful()){
-                        startActivity(new Intent(OtpCodeActivity.this, UserMapActivity.class));
+                        if(status.equals("login"))
+                            startActivity(new Intent(OtpCodeActivity.this, UserMapActivity.class));
+                        if(status.equals("signup"))
+                            intent.putExtra("phone",phoneNumber);
+                            startActivity(intent);
                     }else{
                         Toast.makeText(OtpCodeActivity.this, "Enter the correct otp code", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
-
         }
     }
 }

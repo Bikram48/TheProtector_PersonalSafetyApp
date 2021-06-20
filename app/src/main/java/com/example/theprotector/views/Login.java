@@ -26,10 +26,10 @@ public class Login extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        emailEditTxt=findViewById(R.id.emailTxt);
-        passwordEditTxt=findViewById(R.id.pwdEditText);
-        signupSuggestion=findViewById(R.id.signupSuggestion);
-        loginBtn=findViewById(R.id.loginBtn);
+        emailEditTxt=findViewById(R.id.emailEditTxt);
+        passwordEditTxt=findViewById(R.id.passwordEditTxt);
+        signupSuggestion=findViewById(R.id.registerBtn);
+        loginBtn=findViewById(R.id.registerBtn);
         loginRegisterViewModel= ViewModelProviders.of(this).get(LoginRegisterViewModel.class);
         loginRegisterViewModel.getUserMutableLiveData().observe(this, new Observer<FirebaseUser>() {
                     @Override

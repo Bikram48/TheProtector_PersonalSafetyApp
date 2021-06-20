@@ -8,50 +8,59 @@ import androidx.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ProgressBar;
 
 import com.example.theprotector.viewmodel.LoginRegisterViewModel;
 import com.example.theprotector.views.Login;
-import com.example.theprotector.views.Signup;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseUser;
 
-public class LoginActivity extends AppCompatActivity {
-    private AppCompatButton signupSuggestion;
+public class SignupActivity extends AppCompatActivity {
+    private TextInputEditText fullNameEditTxt;
     private TextInputEditText emailEditTxt;
     private TextInputEditText passwordEditTxt;
+    private AppCompatButton registerBtn;
     private AppCompatButton loginBtn;
+    private ProgressBar mProgressBarSignup;
     private LoginRegisterViewModel loginRegisterViewModel;
+    private String phoneNumber;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FirebaseApp.initializeApp(LoginActivity.this);
-        setContentView(R.layout.activity_login2);
+        setContentView(R.layout.activity_signup2);
+        fullNameEditTxt=findViewById(R.id.fullNameEditTxt);
         emailEditTxt=findViewById(R.id.emailEditTxt);
         passwordEditTxt=findViewById(R.id.passwordEditTxt);
-        signupSuggestion=findViewById(R.id.registerBtn);
-        loginBtn=findViewById(R.id.loginBtn);
+        registerBtn=findViewById(R.id.registerBtn);
+        loginBtn=findViewById(R.id.registerBtn);
+        phoneNumber=getIntent().getStringExtra("phone");
+        mProgressBarSignup=findViewById(R.id.progressbar_signup);
         loginRegisterViewModel= ViewModelProviders.of(this).get(LoginRegisterViewModel.class);
         loginRegisterViewModel.getUserMutableLiveData().observe(this, new Observer<FirebaseUser>() {
             @Override
             public void onChanged(FirebaseUser firebaseUser) {
-                if (firebaseUser != null) {
-                    startActivity(new Intent(LoginActivity.this, UserMapActivity.class));
+                if(firebaseUser!=null){
+                    //Toast.makeText(Signup.this, "User created", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(SignupActivity.this,UserMapActivity.class));
                 }
+            }
+        });
+        registerBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String fullName=fullNameEditTxt.getText().toString();
+                String email=emailEditTxt.getText().toString();
+                String password=passwordEditTxt.getText().toString();
+                loginRegisterViewModel.signup(fullName,email,phoneNumber,password);
+               // mProgressBarSignup.setVisibility(View.VISIBLE);
+               // registerBtn.setVisibility(View.GONE);
             }
         });
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String email=emailEditTxt.getText().toString().trim();
-                String password=passwordEditTxt.getText().toString().trim();
-                loginRegisterViewModel.login(email,password);
-            }
-        });
-        signupSuggestion.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(LoginActivity.this, Signup.class));
+                startActivity(new Intent(SignupActivity.this, Login.class));
             }
         });
     }

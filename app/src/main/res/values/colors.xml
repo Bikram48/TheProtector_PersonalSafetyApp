@@ -10,4 +10,5 @@
     <color name="app_color">#1E296C</color>
     <color name="red_color">#ff1100</color>
     <color name="text_color">#0f68f7</color>
+    <color name="tab_color">#b8bfba</color>
 </resources>

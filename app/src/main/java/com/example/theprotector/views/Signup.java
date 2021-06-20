@@ -41,7 +41,7 @@ public class Signup extends AppCompatActivity {
         phoneNumberEditTxt=findViewById(R.id.phoneNumberEditTxt);
         passwordEditTxt=findViewById(R.id.passwordEditTxt);
         registerBtn=findViewById(R.id.registerBtn);
-        loginBtn=findViewById(R.id.loginBtn);
+        loginBtn=findViewById(R.id.registerBtn);
         mProgressBarSignup=findViewById(R.id.progressbar_signup);
         loginRegisterViewModel= ViewModelProviders.of(this).get(LoginRegisterViewModel.class);
         loginRegisterViewModel.getUserMutableLiveData().observe(this, new Observer<FirebaseUser>() {

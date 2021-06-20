@@ -87,7 +87,7 @@
             android:textColor="@color/white"
             android:backgroundTint="#1E296C"/>
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/loginBtn"
+            android:id="@+id/registerBtn"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="Already Have an account? Login"
