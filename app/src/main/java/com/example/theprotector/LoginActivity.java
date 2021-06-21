@@ -25,7 +25,6 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login2);
         getSupportActionBar().setBackgroundDrawable(getDrawable(R.drawable.login_background));
-        FirebaseApp.initializeApp(LoginActivity.this);
         emailEditTxt=findViewById(R.id.emailEditTxt);
         passwordEditTxt=findViewById(R.id.passwordEditTxt);
         signupSuggestion=findViewById(R.id.loginBtn_Two);

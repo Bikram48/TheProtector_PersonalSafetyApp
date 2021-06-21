@@ -16,6 +16,9 @@ import android.widget.TextView;
 import com.example.theprotector.adapter.IntroViewPagerAdapter;
 import com.example.theprotector.model.ScreenItem;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +37,11 @@ public class IntroActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        FirebaseApp.initializeApp(IntroActivity.this);
+        FirebaseUser firebaseUser= FirebaseAuth.getInstance().getCurrentUser();
+        if(firebaseUser!=null){
+            startActivity(new Intent(IntroActivity.this,UserMapActivity.class));
+        }
         setContentView(R.layout.activity_intro);
         tabLayout=findViewById(R.id.tabLayout);
         btnGetStarted=findViewById(R.id.btn_get_started);

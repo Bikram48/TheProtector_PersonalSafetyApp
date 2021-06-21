@@ -209,10 +209,10 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         //sh.edit().clear().commit();
         mGps = findViewById(R.id.ic_gps);
         mGps.setOnClickListener(this::onClick);
-        emergencyIcon=(ImageView) findViewById(R.id.emergency_icon);
-        emergencyIcon.setOnClickListener(this::onClick);
-        panicBtn=(FloatingActionButton) findViewById(R.id.panicBtn);
-        panicBtn.setOnClickListener(this);
+       // emergencyIcon=(ImageView) findViewById(R.id.emergency_icon);
+        //emergencyIcon.setOnClickListener(this::onClick);
+       // panicBtn=(FloatingActionButton) findViewById(R.id.panicBtn);
+       // panicBtn.setOnClickListener(this);
         triangle = findViewById(R.id.triangle);
         requestPermission();
         startService(new Intent(this, PowerButtonService.class));
@@ -250,15 +250,20 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                         .build(UserMapActivity.this);
                 startActivityForResult(inten, AUTOCOMPLETE_REQUEST_CODE);
                 break;
-            case R.id.emergency_icon:
+           /* case R.id.emergency_icon:
                 startActivity(new Intent(UserMapActivity.this,AllEmergencyContacts.class));
                 break;
+
+            */
             case R.id.display_companion:
                 messageandCallDialog();
                 break;
+                /*
             case R.id.panicBtn:
                 sendMessage();
                 break;
+
+                 */
         }
     }
     public void messageandCallDialog() {
