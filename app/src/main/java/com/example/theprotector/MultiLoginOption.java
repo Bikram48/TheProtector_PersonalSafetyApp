@@ -100,7 +100,8 @@ public class MultiLoginOption extends AppCompatActivity implements View.OnClickL
                 progressBar.setVisibility(View.GONE);
                 secretCodeSenderBtn.setVisibility(View.VISIBLE);
                 Intent intent=new Intent(MultiLoginOption.this, OtpCodeActivity.class);
-                intent.putExtra("phone_number",mPhoneNumber.getText());
+                String phone_number=mPhoneNumber.getText().toString();
+                intent.putExtra("phone_number",phone_number);
                 intent.putExtra("otp_code",s);
                 if(isLogin)
                     intent.putExtra("page","login");

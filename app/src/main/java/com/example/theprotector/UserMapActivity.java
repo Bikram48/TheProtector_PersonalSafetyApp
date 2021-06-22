@@ -11,13 +11,10 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.LevelListDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -26,13 +23,10 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.media.MediaPlayer;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
@@ -42,7 +36,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.widget.AutoCompleteTextView;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -56,9 +49,15 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.theprotector.Utility.AlertUtility;
 import com.example.theprotector.Utility.DialogBoxes;
 import com.example.theprotector.Utility.Utils;
+import com.example.theprotector.adapter.CompanionAdapter;
+import com.example.theprotector.model.CompanionInfo;
+import com.example.theprotector.model.Contact;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
@@ -70,7 +69,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -89,20 +87,22 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class UserMapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener,View.OnClickListener,  SharedPreferences.OnSharedPreferenceChangeListener {
-    private ImageView mSettingIcon,mGps,triangle,emergencyIcon,companion_circle;;
+    private RecyclerView companionDisplay;
+    private ImageView mSettingIcon,mGps,emergencyIcon;
+    private FloatingActionButton mCompanionAddBtn;
     private String TAG = "MapDemo";
     private static GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private AutoCompleteTextView mSearchLocation;
     private FloatingActionButton panicBtn;
-    private static int AUTOCOMPLETE_REQUEST_CODE = 1;
-    private AppCompatButton mCompanionAddBtn;
+    private static final int AUTOCOMPLETE_REQUEST_CODE = 1;
     private Map<String, String> userInfo;
     private TextView companion_name;
     public static final boolean SERVERTRACE = false;
@@ -113,6 +113,8 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     private MyReceiver myReceiver;
     private LocationUpdatesService mService = null;
     private RelativeLayout relativeLayout;
+    private List<CompanionInfo> companionInfoList;
+    CompanionAdapter companionAdapter;
     //private BottomNavigationView bottomNavigationView;
     String request_status = "request_pending";
     DatabaseReference requestref;
@@ -193,9 +195,8 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         myReceiver = new MyReceiver();
         contactListActivity = new ContactListActivity();
         mCompanionAddBtn = findViewById(R.id.add_companion);
-        companion_name=(TextView) findViewById(R.id.companionName);
-        companion_circle=(ImageView) findViewById(R.id.display_companion);
-        companion_circle.setOnClickListener(this);
+//        companion_name=(TextView) findViewById(R.id.companionName);
+
         mCompanionAddBtn.setOnClickListener(this::onClick);
         relativeLayout=findViewById(R.id.relative);
         mSettingIcon = findViewById(R.id.setting_icon);
@@ -208,12 +209,13 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         //sh.edit().clear().commit();
         mGps = findViewById(R.id.ic_gps);
+        companionDisplay=findViewById(R.id.companionRecyclerView);
         mGps.setOnClickListener(this::onClick);
        // emergencyIcon=(ImageView) findViewById(R.id.emergency_icon);
         //emergencyIcon.setOnClickListener(this::onClick);
        // panicBtn=(FloatingActionButton) findViewById(R.id.panicBtn);
        // panicBtn.setOnClickListener(this);
-        triangle = findViewById(R.id.triangle);
+
         requestPermission();
         startService(new Intent(this, PowerButtonService.class));
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
@@ -232,6 +234,56 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         init();
 
     }
+
+    private void init(){
+        companionInfoList=new ArrayList<>();
+        Log.d(TAG, "check: "+sh.getString(Constants.KEY_CON1,null));
+        if(sh.getString(Constants.KEY_CON1,null)!=null){
+            //companion_circle.setVisibility(View.VISIBLE);
+            // companion_name.setVisibility(View.VISIBLE);
+            String nameandnumber=sh.getString(Constants.KEY_CON1,null);
+            Log.d(TAG, "init: "+nameandnumber);
+            String[] fullname=nameandnumber.split("/");
+            String[] firstandlast=fullname[0].split(" ");
+            Snackbar snackBar = Snackbar.make(findViewById(android.R.id.content), "Companion request has been sent to "+firstandlast[0]+" successfully", Snackbar.LENGTH_LONG);
+            snackBar.show();
+            Log.d(TAG, "init: "+sh.getAll());
+            String name;
+            if(firstandlast.length>1)
+                name=String.valueOf(firstandlast[0].charAt(0)) + String.valueOf(firstandlast[1].charAt(0));
+            else
+                name=String.valueOf(firstandlast[0].charAt(0));
+            companionInfoList.add(new CompanionInfo(name,fullname[1]));
+            companionAdapter=new CompanionAdapter(UserMapActivity.this,companionInfoList);
+            companionDisplay.setLayoutManager(new LinearLayoutManager(UserMapActivity.this,LinearLayoutManager.HORIZONTAL,false));
+            companionDisplay.setAdapter(companionAdapter);
+        }
+        if (getIntent().getStringExtra("from") != null) {
+            requestref = FirebaseDatabase.getInstance().getReference("request_status");
+            if (getIntent().getStringExtra("from").equals("notification")) {
+                userInfo = (Map<String, String>) getIntent().getSerializableExtra("userinfo");
+                updateRequest();
+                // Log.d(TAG, "userinfo: "+userInfo.get("senderUsername"));
+                dialogBoxes.showDialog(userInfo);
+            }
+        }
+        if (getIntent().getStringExtra("status") != null) {
+            if (getIntent().getStringExtra("status").equals("accepted")) {
+                userInfo = (Map<String, String>) getIntent().getSerializableExtra("userinfo");
+                // gps = new GPSTracker(UserMapActivity.this, userInfo);
+                acceptedRequest();
+                Log.d(TAG, "userinfo: " + userInfo.get("senderUsername"));
+                dialogBoxes.showAcceptedDialog(userInfo);
+            }
+        }
+        if (getIntent().getStringExtra("status") != null) {
+            if (getIntent().getStringExtra("status").equals("declined")) {
+                userInfo = (Map<String, String>) getIntent().getSerializableExtra("userinfo");
+                dialogBoxes.showCancelledDialog(userInfo);
+            }
+        }
+
+    }
     @Override
     public void onClick(View v) {
         switch (v.getId()){
@@ -243,7 +295,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                 break;
             case R.id.add_companion:
                 Intent intent = new Intent(UserMapActivity.this, ContactListActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent,0);
                 break;
             case R.id.search_location:
                 Intent inten = new Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
@@ -254,8 +306,8 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                 startActivity(new Intent(UserMapActivity.this,AllEmergencyContacts.class));
                 break;
 
-            */
-            case R.id.display_companion:
+            *//*
+            case R.id.add_companion:
                 messageandCallDialog();
                 break;
                 /*
@@ -306,63 +358,6 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
 
 
 
-    private void init(){
-        /*
-        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                switch (item.getItemId()){
-                    case R.id.emergency:
-                        startActivity(new Intent(UserMapActivity.this,AllEmergencyContacts.class));
-                        break;
-                }
-                return true;
-            }
-        });
-
-         */
-
-        Log.d(TAG, "check: "+sh.getString(Constants.KEY_CON1,null));
-        if(sh.getString(Constants.KEY_CON1,null)!=null){
-            companion_circle.setVisibility(View.VISIBLE);
-            companion_name.setVisibility(View.VISIBLE);
-            String nameandnumber=sh.getString(Constants.KEY_CON1,null);
-            String[] fullname=nameandnumber.split("/");
-            String[] firstandlast=fullname[0].split(" ");
-            Snackbar snackBar = Snackbar.make(findViewById(android.R.id.content), "Companion request has been sent to "+firstandlast[0]+" successfully", Snackbar.LENGTH_LONG);
-            snackBar.show();
-            Log.d(TAG, "init: "+sh.getAll());
-
-            if(firstandlast.length>1)
-                companion_name.setText(String.valueOf(firstandlast[0].charAt(0)) + String.valueOf(firstandlast[1].charAt(0)));
-            else
-                companion_name.setText(String.valueOf(firstandlast[0].charAt(0)));
-        }
-        if (getIntent().getStringExtra("from") != null) {
-            requestref = FirebaseDatabase.getInstance().getReference("request_status");
-            if (getIntent().getStringExtra("from").equals("notification")) {
-                userInfo = (Map<String, String>) getIntent().getSerializableExtra("userinfo");
-                updateRequest();
-                // Log.d(TAG, "userinfo: "+userInfo.get("senderUsername"));
-                dialogBoxes.showDialog(userInfo);
-            }
-        }
-        if (getIntent().getStringExtra("status") != null) {
-            if (getIntent().getStringExtra("status").equals("accepted")) {
-                userInfo = (Map<String, String>) getIntent().getSerializableExtra("userinfo");
-               // gps = new GPSTracker(UserMapActivity.this, userInfo);
-                acceptedRequest();
-                Log.d(TAG, "userinfo: " + userInfo.get("senderUsername"));
-                dialogBoxes.showAcceptedDialog(userInfo);
-            }
-        }
-        if (getIntent().getStringExtra("status") != null) {
-            if (getIntent().getStringExtra("status").equals("declined")) {
-                userInfo = (Map<String, String>) getIntent().getSerializableExtra("userinfo");
-                dialogBoxes.showCancelledDialog(userInfo);
-            }
-        }
-    }
 
     private void acceptedRequest(){
         HashMap hashMap=new HashMap();
@@ -400,8 +395,9 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
 
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+
+
         if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 Place place = Autocomplete.getPlaceFromIntent(data);
@@ -416,13 +412,21 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
             }
             return;
         }
+        else if (requestCode == 0) {
+            Log.d(TAG, "onActivityResult: Helllo");
+            if(data!=null) {
+                Contact companionInfo = (Contact) data.getParcelableExtra("object");
+                Log.d(TAG, "checked: " + companionInfo.getName());
+            }
+        }
+        else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
 
 
     }
-
     public void geoLocate(String placeName) {
         mCompanionAddBtn.setVisibility(View.VISIBLE);
-        triangle.setVisibility(View.VISIBLE);
         List<Address> geoCodeMatches = null;
         String searchTxt = placeName;
         Geocoder geocoder = new Geocoder(UserMapActivity.this);

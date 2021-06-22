@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProviders;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
@@ -32,9 +33,10 @@ public class SignupActivity extends AppCompatActivity {
         fullNameEditTxt=findViewById(R.id.fullNameEditTxt);
         emailEditTxt=findViewById(R.id.emailEditTxt);
         passwordEditTxt=findViewById(R.id.passwordEditTxt);
-        registerBtn=findViewById(R.id.loginBtn_Two);
+        registerBtn=findViewById(R.id.registerBtn);
         loginBtn=findViewById(R.id.loginBtn_Two);
         phoneNumber=getIntent().getStringExtra("phone");
+        Log.d("practice1", "onCreate: "+phoneNumber);
         mProgressBarSignup=findViewById(R.id.progressBar2);
         loginRegisterViewModel= ViewModelProviders.of(this).get(LoginRegisterViewModel.class);
         loginRegisterViewModel.getUserMutableLiveData().observe(this, new Observer<FirebaseUser>() {

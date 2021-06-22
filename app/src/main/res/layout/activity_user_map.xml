@@ -83,7 +83,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/relative"
         app:maxImageSize="60dp" />
-
+    <!--
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/add_companion"
         android:layout_width="200dp"
@@ -100,6 +100,7 @@
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+       -->
 
     <!--
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -110,7 +111,7 @@
         android:layout_alignParentBottom="true"
         app:menu="@menu/navigation_items"/>
         -->
-
+<!--
     <ImageView
         android:id="@+id/triangle"
         android:layout_width="wrap_content"
@@ -125,21 +126,50 @@
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/add_companion" />
+        -->
 
-
-
-    <ImageView
-        android:id="@+id/display_companion"
-        android:layout_width="70dp"
-        android:layout_height="100dp"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="10dp"
-        android:src="@drawable/circle1"
-        android:visibility="visible"
+    <HorizontalScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
         app:layout_constraintBottom_toTopOf="@+id/cardView5"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.471"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            >
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/companionRecyclerView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/add_companion"
+                android:layout_width="70dp"
+                android:layout_height="100dp"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="10dp"
+                android:layout_toEndOf="@+id/companionRecyclerView"
+                android:backgroundTint="@color/white"
+                android:foreground="@drawable/ic_baseline_person_add_alt_1_24"
+                android:foregroundGravity="center"
+                android:visibility="visible"
+                app:borderWidth="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/companionRecyclerView"
+                app:layout_constraintTop_toTopOf="@+id/companionRecyclerView"
+                app:tint="@null" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    </HorizontalScrollView>
+
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/ic_gps"
@@ -159,20 +189,6 @@
         app:layout_constraintTop_toTopOf="@+id/floatingActionButton3" />
 
 
-    <TextView
-        android:id="@+id/companionName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="DD"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        android:textColor="@color/companion_color"
-        android:textSize="30sp"
-        android:textStyle="bold"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="@+id/display_companion"
-        app:layout_constraintEnd_toEndOf="@+id/display_companion"
-        app:layout_constraintStart_toStartOf="@+id/display_companion"
-        app:layout_constraintTop_toTopOf="@+id/display_companion" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView5"

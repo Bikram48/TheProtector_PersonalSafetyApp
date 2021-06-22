@@ -6,6 +6,7 @@ import androidx.appcompat.widget.AppCompatButton;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -31,7 +32,8 @@ public class OtpCodeActivity extends AppCompatActivity implements View.OnClickLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_otp_code);
         mOtpCode=findViewById(R.id.otpcode);
-        phoneNumber=getIntent().getStringExtra("phoneNumber");
+        phoneNumber=getIntent().getStringExtra("phone_number");
+        Log.d("practice", "onCreate: "+phoneNumber);
         otpcode=getIntent().getStringExtra("otp_code");
         status=getIntent().getStringExtra("page");
         mSubmitBtn=findViewById(R.id.submitBtn);
