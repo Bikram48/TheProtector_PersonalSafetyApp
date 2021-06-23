@@ -3,15 +3,15 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
+    android:layout_width="100dp"
     android:layout_height="wrap_content"
     android:layout_marginStart="10dp"
     >
 
     <ImageView
         android:id="@+id/add_companion"
-        android:layout_width="80dp"
-        android:layout_height="100dp"
+        android:layout_width="70dp"
+        android:layout_height="90dp"
         android:layout_alignParentStart="true"
         android:src="@drawable/circle1"
         android:visibility="visible"
@@ -19,6 +19,22 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/companion_request"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_alignParentStart="true"
+        android:layout_marginEnd="12dp"
+        android:layout_toEndOf="@+id/companionRecyclerView"
+        android:backgroundTint="@color/white"
+        android:foreground="@drawable/ic_baseline_person_add_alt_1_24"
+        android:foregroundGravity="center"
+        android:visibility="visible"
+        app:borderWidth="0dp"
+        app:layout_constraintBottom_toBottomOf="@+id/add_companion"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@null" />
 
     <TextView
         android:id="@+id/companion_nickname"

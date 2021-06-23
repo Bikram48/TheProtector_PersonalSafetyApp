@@ -128,7 +128,7 @@ public class MyCustomAdapter extends RecyclerView.Adapter<MyCustomAdapter.ViewHo
             Integer pos=(Integer) checkBox.getTag();
             if(contact.isSelected()){
                 emergencyContacts.remove(contact.getName());
-                sharedPreferences.edit().remove(Constants.KEY_CON1).commit();
+                sharedPreferences.edit().remove(contact.getName()).commit();
                 total_contacts--;
                 contact.setSelected(false);
             }else{

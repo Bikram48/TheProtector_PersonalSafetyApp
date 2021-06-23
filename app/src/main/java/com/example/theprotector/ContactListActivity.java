@@ -24,7 +24,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.theprotector.adapter.MyCustomAdapter;
 import com.example.theprotector.model.Contact;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -35,6 +37,7 @@ import com.google.gson.Gson;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,8 +50,10 @@ public class ContactListActivity extends AppCompatActivity implements MyCustomAd
     private RecyclerView mRecyclerView;
     private Map<String,String > emergencyContacts;
     Cursor phones;
+    private String receiverId;
     MyCustomAdapter contactAdapter;
     public final String TAG=ContactListActivity.this.getClass().getSimpleName();
+    DatabaseReference companionRequestRef,notificationRef;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +61,8 @@ public class ContactListActivity extends AppCompatActivity implements MyCustomAd
         companion_confirmation_btn=findViewById(R.id.companion_confirmation_btn);
         mRecyclerView=findViewById(R.id.companionRecyclerView);
         contactList=new ArrayList<>();
+        companionRequestRef=FirebaseDatabase.getInstance().getReference().child("Companion Requests");
+        notificationRef = FirebaseDatabase.getInstance().getReference().child("Notifications");
         requestPermission();
 
     }
@@ -169,20 +176,22 @@ public class ContactListActivity extends AppCompatActivity implements MyCustomAd
                         if(entry.getValue().equals(values)){
                             Log.d(TAG, "onDataChange: phone number matched");
                             Toast.makeText(ContactListActivity.this, "Phone number matched", Toast.LENGTH_SHORT).show();
-                            String userId=dataSnapshot.child("userId").getValue(String.class);
+                             receiverId=dataSnapshot.child("userId").getValue(String.class);
                             String username=dataSnapshot.child("Name").getValue(String.class);
-                            getToken(userId,username);
+                            String myId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+                            String name=entry.getKey();
+                            String[] split=name.split(" ");
+                            String sName;
+                            if(split.length>1){
+                                sName=String.valueOf(split[0].charAt(0))+String.valueOf(split[1].charAt(0));
+                            }else{
+                                sName=String.valueOf(split[0].charAt(0));
+                            }
+                            add_companion_request(myId,receiverId,sName);
+                           // getToken(userId,username);
                             //Toast.makeText(ContactListActivity.this, "Matched "+phoneNumber, Toast.LENGTH_SHORT).show();
                         }
                     }
-                    /*
-                    if(phoneNumber!=null) {
-                        if (phoneNumber.equals(values)) {
-
-                        }
-                    }
-
-                     */
                 }
             }
 
@@ -191,32 +200,9 @@ public class ContactListActivity extends AppCompatActivity implements MyCustomAd
 
             }
         });
+
     }
 
-    public void getToken(String userId,String username){
-
-        DatabaseReference databaseReference=FirebaseDatabase.getInstance().getReference("Tokens").child(userId);
-        databaseReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-             String tokenKey =snapshot.getValue(String.class);
-                Log.d(TAG, "onDataChange: "+tokenKey);
-                //Toast.makeText(ContactListActivity.this, "Tokens "+tokenKey, Toast.LENGTH_SHORT).show();
-                if(tokenKey!=null) {
-                    String senderUsername= FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
-                    String senderId=FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    add_companion_request(senderId,userId);
-                    String body="Hey "+username+","+ senderUsername+ " has request that you to be his companion. Are you sure you want to accept it?";
-                    FCMMessageReceiverService.sendNotification(tokenKey,username,userId,senderUsername,senderId,body,"companion_request",ContactListActivity.this);
-                    //startActivity(new Intent(ContactListActivity.this,UserMapActivity.class));
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                error.getMessage();
-            }
-        });
-    }
 
     @Override
     public void onItemClicked(int index,  Map<String,String > emergencyContacts) {
@@ -229,11 +215,14 @@ public class ContactListActivity extends AppCompatActivity implements MyCustomAd
             companion_confirmation_btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
                     getData();
-                    //Intent intent=new Intent();
-                    //intent.putExtra("object", (Parcelable) contact);
-                    //setResult(0,intent);
-                    //finish();
+
+                  //  add_companion_request(myId,receiverId);
+                    Intent intent=new Intent();
+                    intent.putExtra("object", (Serializable) emergencyContacts);
+                    setResult(0,intent);
+                    finish();
                     //startActivity(new Intent(ContactListActivity.this,UserMapActivity.class));
                 }
             });
@@ -242,15 +231,28 @@ public class ContactListActivity extends AppCompatActivity implements MyCustomAd
         }
     }
 
-    public void add_companion_request(String senderId,String receiverId){
+    public void add_companion_request(String senderId,String receiverId,String sName){
+        companionRequestRef.child(senderId).child(receiverId)
+                .child("requestType").setValue("sent")
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            companionRequestRef.child(receiverId).child(senderId).child("requestType")
+                                    .setValue("received").addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    HashMap<String, String> companionRequestMap = new HashMap<>();
+                                    companionRequestMap.put("from", senderId);
+                                    companionRequestMap.put("type", "request");
+                                    notificationRef.child(receiverId).push()
+                                            .setValue(companionRequestMap);
+                                }
+                            });
 
-        DatabaseReference databaseReference=FirebaseDatabase.getInstance().getReference().child("request");
-        databaseReference.child(receiverId).child(senderId).child("request_type").setValue("received").addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                Toast.makeText(ContactListActivity.this, "Updated", Toast.LENGTH_SHORT).show();
-            }
-        });
+                        }
+                    }
+                });
     }
 
 }

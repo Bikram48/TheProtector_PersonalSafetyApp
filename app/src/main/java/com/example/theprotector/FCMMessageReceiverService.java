@@ -23,8 +23,11 @@ import com.example.theprotector.SingletonPattern.RequestQueueInstance;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -148,4 +151,29 @@ public class FCMMessageReceiverService extends FirebaseMessagingService {
             e.printStackTrace();
         }
     }
+    public static  void getToken(String userId,String username,Context context){
+
+        DatabaseReference databaseReference=FirebaseDatabase.getInstance().getReference("Tokens").child(userId);
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String tokenKey =snapshot.getValue(String.class);
+                //  Log.d(TAG, "onDataChange: "+tokenKey);
+                //Toast.makeText(ContactListActivity.this, "Tokens "+tokenKey, Toast.LENGTH_SHORT).show();
+                if(tokenKey!=null) {
+                    String senderUsername= FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+                    String senderId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    // add_companion_request(senderId,userId);
+                    String body=senderUsername+" has invited you to be his companion";
+                    FCMMessageReceiverService.sendNotification(tokenKey,username,userId,senderUsername,senderId,body,"companion_request",context);
+                    //startActivity(new Intent(ContactListActivity.this,UserMapActivity.class));
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                error.getMessage();
+            }
+        });
+    }
+
 }

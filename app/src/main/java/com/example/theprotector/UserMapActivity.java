@@ -25,6 +25,7 @@ import android.location.Location;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.IBinder;
@@ -33,9 +34,12 @@ import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -44,6 +48,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -58,6 +63,8 @@ import com.example.theprotector.Utility.Utils;
 import com.example.theprotector.adapter.CompanionAdapter;
 import com.example.theprotector.model.CompanionInfo;
 import com.example.theprotector.model.Contact;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
@@ -121,7 +128,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     List<Place.Field> fields;
     View mapView;
     ContactListActivity contactListActivity;
-    DatabaseReference userlocation;
+    DatabaseReference userlocation,companionRequestRef,userRef;
     DialogBoxes dialogBoxes;
     Map<String, String> myContacts = new HashMap<>(1);
     SharedPreferences sh;
@@ -145,15 +152,6 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         }
     };
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        PreferenceManager.getDefaultSharedPreferences(this)
-                .registerOnSharedPreferenceChangeListener(this);
-
-        bindService(new Intent(this, LocationUpdatesService.class), mServiceConnection,
-                Context.BIND_AUTO_CREATE);
-    }
 
     @Override
     protected void onResume() {
@@ -210,12 +208,15 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         //sh.edit().clear().commit();
         mGps = findViewById(R.id.ic_gps);
         companionDisplay=findViewById(R.id.companionRecyclerView);
+        companionDisplay.setLayoutManager(new LinearLayoutManager(UserMapActivity.this,LinearLayoutManager.HORIZONTAL,false));
         mGps.setOnClickListener(this::onClick);
        // emergencyIcon=(ImageView) findViewById(R.id.emergency_icon);
         //emergencyIcon.setOnClickListener(this::onClick);
        // panicBtn=(FloatingActionButton) findViewById(R.id.panicBtn);
        // panicBtn.setOnClickListener(this);
 
+        companionRequestRef=FirebaseDatabase.getInstance().getReference().child("Companion Requests");
+        userRef=FirebaseDatabase.getInstance().getReference("Users");
         requestPermission();
         startService(new Intent(this, PowerButtonService.class));
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
@@ -235,29 +236,122 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .registerOnSharedPreferenceChangeListener(this);
+
+        bindService(new Intent(this, LocationUpdatesService.class), mServiceConnection,
+                Context.BIND_AUTO_CREATE);
+        FirebaseRecyclerOptions<CompanionInfo> options =
+                new FirebaseRecyclerOptions.Builder<CompanionInfo>()
+                        .setQuery(companionRequestRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid()), CompanionInfo.class)
+                        .build();
+        final FirebaseRecyclerAdapter<CompanionInfo,RequestViewHolder> adapter=new FirebaseRecyclerAdapter<CompanionInfo, RequestViewHolder>(options) {
+            @Override
+            protected void onBindViewHolder(@NonNull RequestViewHolder requestViewHolder, int position, @NonNull CompanionInfo companionInfo) {
+                 String listUserId = getRef(position).getKey();
+                Log.d(TAG, "onBindViewHolder: "+listUserId);
+                DatabaseReference getTypeRef = getRef(position).child("requestType").getRef();
+                getTypeRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if(dataSnapshot.exists()){
+                            String type = dataSnapshot.getValue().toString();
+                            Log.d(TAG, "onDataChange: "+type);
+                            if(type.equals("received")){
+                                userRef.child(listUserId).addValueEventListener(new ValueEventListener() {
+                                    @RequiresApi(api = Build.VERSION_CODES.M)
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        String sName;
+                                        requestViewHolder.companion_request_btn.setVisibility(View.VISIBLE);
+                                        requestViewHolder.companion_request_btn.setForeground(getDrawable(R.drawable.ic_baseline_person_add_alt_1_24));
+                                        final String requestUsername=snapshot.child("Name").getValue().toString();
+                                        ContactListActivity contactListActivity=new ContactListActivity();
+                                        Log.d(TAG, "onDataChange: "+requestUsername);
+                                        String[] split=requestUsername.split(" ");
+                                        if(split.length>1){
+                                            sName=String.valueOf(split[0].charAt(0))+String.valueOf(split[1].charAt(0));
+                                        }else{
+                                            sName=String.valueOf(split[0].charAt(0));
+                                        }
+                                        requestViewHolder.name.setText(sName);
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+                            }
+                            else if(type.equals("sent")){
+                                userRef.child(listUserId).addValueEventListener(new ValueEventListener() {
+                                    @RequiresApi(api = Build.VERSION_CODES.M)
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        String sName;
+                                        requestViewHolder.companion_request_btn.setVisibility(View.VISIBLE);
+                                        requestViewHolder.companion_request_btn.setForeground(getDrawable(R.drawable.ic_baseline_access_time_24));
+                                        final String requestUsername=snapshot.child("Name").getValue().toString();
+                                        ContactListActivity contactListActivity=new ContactListActivity();
+                                       // FCMMessageReceiverService.getToken(listUserId,requestUsername,UserMapActivity.this);
+                                        Log.d(TAG, "onDataChange: "+requestUsername);
+                                        String[] split=requestUsername.split(" ");
+                                        if(split.length>1){
+                                            sName=String.valueOf(split[0].charAt(0))+String.valueOf(split[1].charAt(0));
+                                        }else{
+                                            sName=String.valueOf(split[0].charAt(0));
+                                        }
+                                        requestViewHolder.name.setText(sName);
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+            }
+
+            @NonNull
+            @Override
+            public RequestViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.companion_items, parent, false);
+                RequestViewHolder holder = new RequestViewHolder(view);
+                return holder;
+            }
+        };
+        companionDisplay.setAdapter(adapter);
+        adapter.startListening();
+
+    }
+    public static class RequestViewHolder extends  RecyclerView.ViewHolder{
+        private ImageView imageView;
+        private FloatingActionButton companion_request_btn;
+        private TextView name;
+        public RequestViewHolder(@NonNull View itemView) {
+            super(itemView);
+            imageView=itemView.findViewById(R.id.add_companion);
+            name=itemView.findViewById(R.id.companion_nickname);
+            companion_request_btn=itemView.findViewById(R.id.companion_request);
+        }
+    }
+
+
     private void init(){
         companionInfoList=new ArrayList<>();
         Log.d(TAG, "check: "+sh.getString(Constants.KEY_CON1,null));
-        if(sh.getString(Constants.KEY_CON1,null)!=null){
-            //companion_circle.setVisibility(View.VISIBLE);
-            // companion_name.setVisibility(View.VISIBLE);
-            String nameandnumber=sh.getString(Constants.KEY_CON1,null);
-            Log.d(TAG, "init: "+nameandnumber);
-            String[] fullname=nameandnumber.split("/");
-            String[] firstandlast=fullname[0].split(" ");
-            Snackbar snackBar = Snackbar.make(findViewById(android.R.id.content), "Companion request has been sent to "+firstandlast[0]+" successfully", Snackbar.LENGTH_LONG);
-            snackBar.show();
-            Log.d(TAG, "init: "+sh.getAll());
-            String name;
-            if(firstandlast.length>1)
-                name=String.valueOf(firstandlast[0].charAt(0)) + String.valueOf(firstandlast[1].charAt(0));
-            else
-                name=String.valueOf(firstandlast[0].charAt(0));
-            companionInfoList.add(new CompanionInfo(name,fullname[1]));
-            companionAdapter=new CompanionAdapter(UserMapActivity.this,companionInfoList);
-            companionDisplay.setLayoutManager(new LinearLayoutManager(UserMapActivity.this,LinearLayoutManager.HORIZONTAL,false));
-            companionDisplay.setAdapter(companionAdapter);
-        }
+
         if (getIntent().getStringExtra("from") != null) {
             requestref = FirebaseDatabase.getInstance().getReference("request_status");
             if (getIntent().getStringExtra("from").equals("notification")) {
@@ -414,10 +508,27 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         }
         else if (requestCode == 0) {
             Log.d(TAG, "onActivityResult: Helllo");
-            if(data!=null) {
-                Contact companionInfo = (Contact) data.getParcelableExtra("object");
-                Log.d(TAG, "checked: " + companionInfo.getName());
+            /*
+            if(data!=null){
+                Map<String,String> companionList= (Map<String, String>) data.getSerializableExtra("object");
+                for(Map.Entry<String, ?> entry:sh.getAll().entrySet()){
+                    String fullname=entry.getKey();
+                    Log.d(TAG, "onActivityResult:hai "+fullname);
+                    String[] firstandlast=fullname.split(" ");
+                    String name;
+                    if(firstandlast.length>1)
+                        name=String.valueOf(firstandlast[0].charAt(0)) + String.valueOf(firstandlast[1].charAt(0));
+                    else
+                        name=String.valueOf(firstandlast[0].charAt(0));
+                    companionInfoList.add(new CompanionInfo(name,null));
+
+                }
+                companionAdapter=new CompanionAdapter(UserMapActivity.this,companionInfoList);
+                companionDisplay.setLayoutManager(new LinearLayoutManager(UserMapActivity.this,LinearLayoutManager.HORIZONTAL,false));
+                companionDisplay.setAdapter(companionAdapter);
             }
+
+             */
         }
         else {
             super.onActivityResult(requestCode, resultCode, data);
@@ -872,5 +983,6 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
 
         StrictMode.setThreadPolicy(policy);
     }
+
 
 }

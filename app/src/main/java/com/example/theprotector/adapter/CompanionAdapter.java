@@ -1,6 +1,7 @@
 package com.example.theprotector.adapter;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,10 +9,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.theprotector.R;
 import com.example.theprotector.model.CompanionInfo;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
@@ -32,6 +35,7 @@ public class CompanionAdapter extends RecyclerView.Adapter<CompanionAdapter.Comp
 
     @Override
     public void onBindViewHolder(@NonNull CompanionHolder holder, int position) {
+
         holder.name.setText(companionInfoList.get(position).getName());
     }
 
