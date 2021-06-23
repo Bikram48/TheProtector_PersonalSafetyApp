@@ -39,7 +39,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AutoCompleteTextView;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -49,7 +48,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.widget.AppCompatButton;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -59,10 +57,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.theprotector.Utility.AlertUtility;
 import com.example.theprotector.Utility.DialogBoxes;
+import com.example.theprotector.Utility.Utilities;
 import com.example.theprotector.Utility.Utils;
 import com.example.theprotector.adapter.CompanionAdapter;
 import com.example.theprotector.model.CompanionInfo;
-import com.example.theprotector.model.Contact;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.common.ConnectionResult;
@@ -84,8 +82,8 @@ import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -128,7 +126,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     List<Place.Field> fields;
     View mapView;
     ContactListActivity contactListActivity;
-    DatabaseReference userlocation,companionRequestRef,userRef;
+    DatabaseReference userlocation,companionRequestRef,userRef,contactsRef;
     DialogBoxes dialogBoxes;
     Map<String, String> myContacts = new HashMap<>(1);
     SharedPreferences sh;
@@ -216,6 +214,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
        // panicBtn.setOnClickListener(this);
 
         companionRequestRef=FirebaseDatabase.getInstance().getReference().child("Companion Requests");
+        contactsRef=FirebaseDatabase.getInstance().getReference().child("Contacts");
         userRef=FirebaseDatabase.getInstance().getReference("Users");
         requestPermission();
         startService(new Intent(this, PowerButtonService.class));
@@ -269,6 +268,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                         requestViewHolder.companion_request_btn.setVisibility(View.VISIBLE);
                                         requestViewHolder.companion_request_btn.setForeground(getDrawable(R.drawable.ic_baseline_person_add_alt_1_24));
                                         final String requestUsername=snapshot.child("Name").getValue().toString();
+                                        final String number=snapshot.child("cell").getValue().toString();
                                         ContactListActivity contactListActivity=new ContactListActivity();
                                         Log.d(TAG, "onDataChange: "+requestUsername);
                                         String[] split=requestUsername.split(" ");
@@ -278,6 +278,61 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                             sName=String.valueOf(split[0].charAt(0));
                                         }
                                         requestViewHolder.name.setText(sName);
+                                        requestViewHolder.imageView.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                BottomSheetDialog bottomSheetDialog=new BottomSheetDialog(UserMapActivity.this
+                                                ,R.style.BottomSheeDialogTheme);
+                                                View bottomSheetView=LayoutInflater.from(getApplicationContext()).inflate(
+                                                        R.layout.layout_bottom_sheet, findViewById(R.id.bottomSheetContainer)
+                                                );
+                                                TextView textView=bottomSheetView.findViewById(R.id.shortcutName);
+                                                TextView mNumber=bottomSheetView.findViewById(R.id.number_companion);
+                                                TextView invite=bottomSheetView.findViewById(R.id.textView);
+                                                textView.setText(sName);
+                                                mNumber.setText(number);
+                                                invite.setText("Invite from "+requestUsername);
+                                                bottomSheetView.findViewById(R.id.accept_btn).setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        requestViewHolder.companion_request_btn.setForeground(getDrawable(R.drawable.ic_connected));
+                                                        FCMMessageReceiverService.getToken(listUserId,requestUsername,UserMapActivity.this);
+                                                        companionRequestRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(listUserId).child("requestType").setValue("lets_track").addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<Void> task) {
+                                                                if(task.isSuccessful()){
+                                                                    companionRequestRef.child(listUserId).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("requestType").setValue("accepted");
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                                bottomSheetView.findViewById(R.id.message_btn).setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        companionRequestRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(listUserId)
+                                                                .removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<Void> task) {
+                                                                if(task.isSuccessful()){
+                                                                    companionRequestRef.child(listUserId).child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                                                            .removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                        @Override
+                                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                                            if(task.isSuccessful()){
+                                                                                Toast.makeText(UserMapActivity.this, "Contact Deleted",Toast.LENGTH_SHORT).show();
+                                                                            }
+                                                                        }
+                                                                    });
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                                bottomSheetDialog.setContentView(bottomSheetView);
+                                                bottomSheetDialog.show();
+                                            }
+                                        });
                                     }
 
                                     @Override
@@ -295,8 +350,9 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                         requestViewHolder.companion_request_btn.setVisibility(View.VISIBLE);
                                         requestViewHolder.companion_request_btn.setForeground(getDrawable(R.drawable.ic_baseline_access_time_24));
                                         final String requestUsername=snapshot.child("Name").getValue().toString();
+                                        final String number=snapshot.child("cell").getValue().toString();
                                         ContactListActivity contactListActivity=new ContactListActivity();
-                                       // FCMMessageReceiverService.getToken(listUserId,requestUsername,UserMapActivity.this);
+                                        FCMMessageReceiverService.getToken(listUserId,requestUsername,UserMapActivity.this);
                                         Log.d(TAG, "onDataChange: "+requestUsername);
                                         String[] split=requestUsername.split(" ");
                                         if(split.length>1){
@@ -305,6 +361,138 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                             sName=String.valueOf(split[0].charAt(0));
                                         }
                                         requestViewHolder.name.setText(sName);
+                                        requestViewHolder.imageView.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                Toast.makeText(UserMapActivity.this, "Hello", Toast.LENGTH_SHORT).show();
+                                                BottomSheetDialog bottomSheetDialog=new BottomSheetDialog(UserMapActivity.this
+                                                        ,R.style.BottomSheeDialogTheme);
+                                                View bottomSheetView=LayoutInflater.from(getApplicationContext()).inflate(
+                                                        R.layout.layout_bottom_sheet_companionrequest, findViewById(R.id.bottomSheetContainer)
+                                                );
+                                                TextView textView=bottomSheetView.findViewById(R.id.shortcutName);
+                                                TextView mNumber=bottomSheetView.findViewById(R.id.number_companion);
+                                                TextView invite=bottomSheetView.findViewById(R.id.textView);
+                                                textView.setText(sName);
+                                                mNumber.setText(number);
+                                                invite.setText(requestUsername);
+                                                bottomSheetDialog.setContentView(bottomSheetView);
+                                                bottomSheetDialog.show();
+                                            }
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+                            }
+                            else if(type.equals("accepted")){
+                                userRef.child(listUserId).addValueEventListener(new ValueEventListener() {
+                                    @RequiresApi(api = Build.VERSION_CODES.M)
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        String sName;
+                                        requestViewHolder.companion_request_btn.setVisibility(View.VISIBLE);
+                                        requestViewHolder.companion_request_btn.setForeground(getDrawable(R.drawable.ic_connected));
+                                        final String requestUsername=snapshot.child("Name").getValue().toString();
+                                        final String number=snapshot.child("cell").getValue().toString();
+                                        ContactListActivity contactListActivity=new ContactListActivity();
+                                        //FCMMessageReceiverService.getToken(listUserId,requestUsername,UserMapActivity.this);
+                                        Log.d(TAG, "onDataChange: "+requestUsername);
+                                        String[] split=requestUsername.split(" ");
+                                        if(split.length>1){
+                                            sName=String.valueOf(split[0].charAt(0))+String.valueOf(split[1].charAt(0));
+                                        }else{
+                                            sName=String.valueOf(split[0].charAt(0));
+                                        }
+                                        requestViewHolder.name.setText(sName);
+                                        requestViewHolder.imageView.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                BottomSheetDialog bottomSheetDialog=new BottomSheetDialog(UserMapActivity.this
+                                                        ,R.style.BottomSheeDialogTheme);
+                                                View bottomSheetView=LayoutInflater.from(UserMapActivity.this).inflate(
+                                                        R.layout.accept_bottom_sheet_dialog, findViewById(R.id.bottomSheetContainer)
+                                                );
+                                                TextView textView=bottomSheetView.findViewById(R.id.shortcutName);
+                                                TextView mNumber=bottomSheetView.findViewById(R.id.number_companion);
+                                                TextView invite=bottomSheetView.findViewById(R.id.textView);
+                                                textView.setText(sName);
+                                                mNumber.setText(number);
+                                                invite.setText(requestUsername);
+                                                bottomSheetView.findViewById(R.id.message_btn).setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        Utilities.sendMessage(number,"Hello",UserMapActivity.this);
+                                                    }
+                                                });
+                                                bottomSheetView.findViewById(R.id.call_btn).setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        Utilities.callNumber(number,UserMapActivity.this);
+                                                    }
+                                                });
+                                                bottomSheetDialog.setContentView(bottomSheetView);
+                                                bottomSheetDialog.show();
+                                            }
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+                            }
+                            else if(type.equals("lets_track")){
+                                userRef.child(listUserId).addValueEventListener(new ValueEventListener() {
+                                    @RequiresApi(api = Build.VERSION_CODES.M)
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        String sName;
+                                        requestViewHolder.companion_request_btn.setVisibility(View.VISIBLE);
+                                        requestViewHolder.companion_request_btn.setForeground(getDrawable(R.drawable.ic_connected));
+                                        final String requestUsername=snapshot.child("Name").getValue().toString();
+                                        final String number=snapshot.child("cell").getValue().toString();
+                                        String[] split=requestUsername.split(" ");
+                                        if(split.length>1){
+                                            sName=String.valueOf(split[0].charAt(0))+String.valueOf(split[1].charAt(0));
+                                        }else{
+                                            sName=String.valueOf(split[0].charAt(0));
+                                        }
+                                        requestViewHolder.name.setText(sName);
+                                        requestViewHolder.imageView.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                BottomSheetDialog bottomSheetDialog=new BottomSheetDialog(UserMapActivity.this
+                                                        ,R.style.BottomSheeDialogTheme);
+                                                View bottomSheetView=LayoutInflater.from(UserMapActivity.this).inflate(
+                                                        R.layout.accept_bottom_sheet_dialog, findViewById(R.id.bottomSheetContainer)
+                                                );
+                                                TextView textView=bottomSheetView.findViewById(R.id.shortcutName);
+                                                TextView mNumber=bottomSheetView.findViewById(R.id.number_companion);
+                                                TextView invite=bottomSheetView.findViewById(R.id.textView);
+                                                textView.setText(sName);
+                                                mNumber.setText(number);
+                                                invite.setText(requestUsername);
+                                                bottomSheetView.findViewById(R.id.message_btn).setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        Utilities.sendMessage(number,"Hello",UserMapActivity.this);
+                                                    }
+                                                });
+                                                bottomSheetView.findViewById(R.id.call_btn).setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        Utilities.callNumber(number,UserMapActivity.this);
+                                                    }
+                                                });
+                                                bottomSheetDialog.setContentView(bottomSheetView);
+                                                bottomSheetDialog.show();
+                                            }
+                                        });
                                     }
 
                                     @Override
@@ -344,6 +532,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
             imageView=itemView.findViewById(R.id.add_companion);
             name=itemView.findViewById(R.id.companion_nickname);
             companion_request_btn=itemView.findViewById(R.id.companion_request);
+
         }
     }
 
@@ -412,39 +601,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                  */
         }
     }
-    public void messageandCallDialog() {
-        final Dialog dialog=new Dialog(UserMapActivity.this);
-        //body_message.setText("Hey "+", "+" has requested that you to be his companion. Keep an eye on her as she is on the move");
-        // DatabaseReference databaseReference= FirebaseDatabase.getInstance().getReference("Request").child()
 
-        dialog.setCancelable(true);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        dialog.setContentView(R.layout.callandmessagedialog);
-        TextView cancel_btn=dialog.findViewById(R.id.cancel_txt);
-        TextView call_btn=dialog.findViewById(R.id.call_text);
-        String nameandnumber=sh.getString(Constants.KEY_CON1,null);
-        String[] fullname=nameandnumber.split("/");
-        call_btn.setText("Call "+fullname[0]);
-        TextView message_btn=dialog.findViewById(R.id.message_txt);
-        message_btn.setText("Message "+fullname[0]);
-        cancel_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialog.dismiss();
-            }
-        });
-        call_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d(TAG, "onClick: clicked"+fullname[1]);
-                Intent intent=new Intent(Intent.ACTION_CALL);
-                intent.setData(Uri.parse("tel:"+fullname[1]));
-                startActivity(intent);
-            }
-        });
-        dialog.show();
-    }
     private void sendMessage() {
         AlertUtility alertUtility=new AlertUtility(UserMapActivity.this);
         alertUtility.new SendMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);

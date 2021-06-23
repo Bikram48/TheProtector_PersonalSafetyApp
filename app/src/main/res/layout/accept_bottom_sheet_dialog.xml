@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    android:id="@+id/bottomSheetContainer"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bottomSheetContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="20dp"
     android:background="@drawable/bottom_sheet_background"
-    >
+    android:padding="20dp">
 
     <ImageView
         android:id="@+id/userImage"
@@ -61,7 +59,7 @@
         android:layout_toRightOf="@+id/userImage"
         android:fontFamily="@font/capriola"
         android:gravity="center_vertical"
-        android:text="Invite from puja chand"
+        android:text="Puja Chand"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textStyle="bold"
 
@@ -79,38 +77,83 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/userImage" />
 
-    <androidx.appcompat.widget.AppCompatButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/message_btn"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:background="@null"
-        android:drawableLeft="@drawable/ic_reject"
-        android:drawablePadding="20dp"
-        android:paddingStart="50dp"
-        android:text="Reject"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="20dp"
+        android:text="Waiting to accept"
+        app:backgroundTint="@android:color/transparent"
         android:textAlignment="textStart"
-        android:textColor="@color/red_color"
+        android:src="@drawable/ic_baseline_message_24"
+        app:tint="@null"
+        app:fabCustomSize="82dp"
+        android:textColor="#d4780f"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/call_btn"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/view" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/accept_btn"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/call_btn"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         android:layout_marginTop="20dp"
-        android:background="@null"
-        android:drawableLeft="@drawable/ic_accept"
-        android:drawablePadding="20dp"
-        android:paddingStart="50dp"
-        android:text="Accept"
-        android:textAlignment="textStart"
-        android:textColor="#1543D9"
-        android:textStyle="bold"
+        android:src="@drawable/ic_baseline_call_24"
+        app:fabCustomSize="82dp"
+        app:tint="@null"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:backgroundTint="@android:color/transparent"
+        app:rippleColor="@null"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/message_btn"
+        app:layout_constraintTop_toBottomOf="@+id/view" />
+
+    <TextView
+        android:id="@+id/textView15"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Message"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="@+id/message_btn"
+        app:layout_constraintStart_toStartOf="@+id/message_btn"
         app:layout_constraintTop_toBottomOf="@+id/message_btn" />
 
+    <TextView
+        android:id="@+id/textView16"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Call"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="@+id/call_btn"
+        app:layout_constraintStart_toStartOf="@+id/call_btn"
+        app:layout_constraintTop_toBottomOf="@+id/call_btn" />
+
+    <View
+        android:id="@+id/view2"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/silver_color"
+        app:layout_constraintTop_toBottomOf="@+id/textView15"
+        tools:layout_editor_absoluteX="1dp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="STOP SHARING LOCATION"
+        android:textColor="@color/red_color"
+        android:background="@null"
+        android:drawableLeft="@drawable/ic_connected"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view2" />
 </androidx.constraintlayout.widget.ConstraintLayout>

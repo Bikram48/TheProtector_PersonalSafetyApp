@@ -61,7 +61,7 @@
         android:layout_toRightOf="@+id/userImage"
         android:fontFamily="@font/capriola"
         android:gravity="center_vertical"
-        android:text="Invite from puja chand"
+        android:text="Puja Chand"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textStyle="bold"
 
@@ -85,32 +85,16 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:background="@null"
-        android:drawableLeft="@drawable/ic_reject"
+        android:drawableLeft="@drawable/ic_baseline_access_time_24"
         android:drawablePadding="20dp"
         android:paddingStart="50dp"
-        android:text="Reject"
+        android:text="Waiting to accept"
         android:textAlignment="textStart"
-        android:textColor="@color/red_color"
+        android:textColor="#d4780f"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/view" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/accept_btn"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:background="@null"
-        android:drawableLeft="@drawable/ic_accept"
-        android:drawablePadding="20dp"
-        android:paddingStart="50dp"
-        android:text="Accept"
-        android:textAlignment="textStart"
-        android:textColor="#1543D9"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/message_btn" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
