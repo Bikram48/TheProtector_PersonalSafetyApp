@@ -211,14 +211,16 @@
             android:layout_marginTop="30dp"
             android:fontFamily="@font/capriola"
             android:text="Watch over me"/>
+
         <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/location_share_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:backgroundTint="@color/text_color"
-            android:src="@drawable/ic_walk"
             android:layout_marginTop="10dp"
-            app:tint="@null"/>
+            app:backgroundTint="@color/text_color"
+            android:src="@drawable/ic_walk"
+            app:tint="@null" />
     </androidx.cardview.widget.CardView>
 
     <androidx.cardview.widget.CardView

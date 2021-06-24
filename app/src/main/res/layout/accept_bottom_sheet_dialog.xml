@@ -146,14 +146,27 @@
         tools:layout_editor_absoluteX="1dp" />
 
     <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/appCompatButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="STOP SHARING LOCATION"
-        android:textColor="@color/red_color"
         android:background="@null"
         android:drawableLeft="@drawable/ic_connected"
+        android:text="STOP SHARING LOCATION"
+        android:textColor="@color/red_color"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/view2" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/ic_connected"
+        android:text="Remove From List"
+        android:background="@null"
+        android:textColor="@color/red_color"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/appCompatButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -175,7 +175,7 @@ public class ContactListActivity extends AppCompatActivity implements MyCustomAd
                     for(Map.Entry<String,String > entry:emergencyContacts.entrySet()){
                         if(entry.getValue().equals(values)){
                             Log.d(TAG, "onDataChange: phone number matched");
-                            Toast.makeText(ContactListActivity.this, "Phone number matched", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(ContactListActivity.this, "Phone number matched", Toast.LENGTH_SHORT).show();
                              receiverId=dataSnapshot.child("userId").getValue(String.class);
                             String username=dataSnapshot.child("Name").getValue(String.class);
                             String myId=FirebaseAuth.getInstance().getCurrentUser().getUid();

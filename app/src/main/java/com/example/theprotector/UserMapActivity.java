@@ -11,6 +11,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -39,7 +40,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AutoCompleteTextView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -55,6 +58,13 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.theprotector.Constants;
+import com.example.theprotector.ContactListActivity;
+import com.example.theprotector.FCMMessageReceiverService;
+import com.example.theprotector.FallDetectAlgo;
+import com.example.theprotector.LocationUpdatesService;
+import com.example.theprotector.PowerButtonService;
+import com.example.theprotector.R;
 import com.example.theprotector.Utility.AlertUtility;
 import com.example.theprotector.Utility.DialogBoxes;
 import com.example.theprotector.Utility.Utilities;
@@ -103,11 +113,14 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     private ImageView mSettingIcon,mGps,emergencyIcon;
     private FloatingActionButton mCompanionAddBtn;
     private String TAG = "MapDemo";
+    private boolean isClicked=false;
+    private PopupWindow mPopupWindow;
     private static GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private AutoCompleteTextView mSearchLocation;
-    private FloatingActionButton panicBtn;
+    private FloatingActionButton panicBtn,location_sharing_btn;
     private static final int AUTOCOMPLETE_REQUEST_CODE = 1;
+    private RelativeLayout mRelativeLayout;
     private Map<String, String> userInfo;
     private TextView companion_name;
     public static final boolean SERVERTRACE = false;
@@ -192,7 +205,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         contactListActivity = new ContactListActivity();
         mCompanionAddBtn = findViewById(R.id.add_companion);
 //        companion_name=(TextView) findViewById(R.id.companionName);
-
+        location_sharing_btn=findViewById(R.id.location_share_btn);
         mCompanionAddBtn.setOnClickListener(this::onClick);
         relativeLayout=findViewById(R.id.relative);
         mSettingIcon = findViewById(R.id.setting_icon);
@@ -302,6 +315,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                                             public void onComplete(@NonNull Task<Void> task) {
                                                                 if(task.isSuccessful()){
                                                                     companionRequestRef.child(listUserId).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("requestType").setValue("accepted");
+                                                                    bottomSheetDialog.dismiss();
                                                                 }
                                                             }
                                                         });
@@ -320,7 +334,8 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                                                         @Override
                                                                         public void onComplete(@NonNull Task<Void> task) {
                                                                             if(task.isSuccessful()){
-                                                                                Toast.makeText(UserMapActivity.this, "Contact Deleted",Toast.LENGTH_SHORT).show();
+                                                                               // Toast.makeText(UserMapActivity.this, "Contact Deleted",Toast.LENGTH_SHORT).show();
+                                                                                bottomSheetDialog.dismiss();
                                                                             }
                                                                         }
                                                                     });
@@ -389,10 +404,60 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                 });
                             }
                             else if(type.equals("accepted")){
+
+                                location_sharing_btn.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        if(isClicked) {
+                                            location_sharing_btn.setImageResource(R.drawable.ic_walk);
+                                            location_sharing_btn.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(UserMapActivity.this,R.color.text_color)));
+                                            mService.removeLocationUpdates();
+                                        }else{
+
+                                            // Initialize a new instance of LayoutInflater service
+                                            LayoutInflater inflater = (LayoutInflater) UserMapActivity.this.getSystemService(LAYOUT_INFLATER_SERVICE);
+
+                                            // Inflate the custom layout/view
+                                            View customView = inflater.inflate(R.layout.popup_window,null);
+                                            mRelativeLayout = (RelativeLayout) customView.findViewById(R.id.rl_custom_layout);
+                                            mPopupWindow = new PopupWindow(
+                                                    customView,
+                                                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                                                    ViewGroup.LayoutParams.WRAP_CONTENT
+                                            );
+
+                                            // Set an elevation value for popup window
+                                            // Call requires API level 21
+                                            if(Build.VERSION.SDK_INT>=21){
+                                                mPopupWindow.setElevation(5.0f);
+                                            }
+
+                                            // Get a reference for the custom view close button
+                                            ImageButton closeButton = (ImageButton) customView.findViewById(R.id.ib_close);
+                                            // Set a click listener for the popup window close button
+                                            closeButton.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View view) {
+                                                    // Dismiss the popup window
+                                                    mPopupWindow.dismiss();
+                                                }
+                                            });
+                                            mPopupWindow.showAtLocation(mRelativeLayout, Gravity.CENTER,0,40);
+
+                                            location_sharing_btn.setImageResource(R.drawable.ic_location_disabled);
+                                            mService.requestLocationUpdates();
+                                            location_sharing_btn.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red_color)));
+                                        }
+                                        isClicked=!isClicked;
+                                    }
+                                });
                                 userRef.child(listUserId).addValueEventListener(new ValueEventListener() {
                                     @RequiresApi(api = Build.VERSION_CODES.M)
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                                       // Log.d(TAG, "SenderId check: "+FirebaseAuth.getInstance().getCurrentUser().getUid());
+                                        updatedUserLocation(FirebaseAuth.getInstance().getCurrentUser().getUid());
                                         String sName;
                                         requestViewHolder.companion_request_btn.setVisibility(View.VISIBLE);
                                         requestViewHolder.companion_request_btn.setForeground(getDrawable(R.drawable.ic_connected));
@@ -451,6 +516,8 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                     @RequiresApi(api = Build.VERSION_CODES.M)
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        updatedUserLocation(listUserId);
+                                        Log.d(TAG, "SenderId check: "+listUserId);
                                         String sName;
                                         requestViewHolder.companion_request_btn.setVisibility(View.VISIBLE);
                                         requestViewHolder.companion_request_btn.setForeground(getDrawable(R.drawable.ic_connected));
@@ -769,9 +836,9 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                     FallDetector fallDetector = new FallDetector();
                                     fallDetector.execute();
                                 }
-                                mService.requestLocationUpdates();
+
                             }
-                            updatedUserLocation();
+                           // updatedUserLocation();
                         }
                     }
                     @Override
@@ -884,8 +951,8 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     }
 
 
-    public void updatedUserLocation() {
-        DatabaseReference updateLocation = FirebaseDatabase.getInstance().getReference("location").child(userInfo.get("senderId"));
+    public void updatedUserLocation(String senderId) {
+        DatabaseReference updateLocation = FirebaseDatabase.getInstance().getReference("location").child(senderId);
         // Log.d(TAG, "User id: "+userInfo.get("senderId"));
         final Double[] newLat = new Double[1];
         final Double[] newLong = new Double[1];
@@ -906,7 +973,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                     Log.d(TAG, "longitude: " + newLong[0]);
                     moveCamera(new LatLng(newLat[0], newLong[0]), 15f, "MyLocation");
 
-                    FirebaseDatabase.getInstance().getReference("destination").child(userInfo.get("senderId")).addValueEventListener(new ValueEventListener() {
+                    FirebaseDatabase.getInstance().getReference("destination").child(senderId).addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             Double lat=Double.parseDouble(snapshot.child("latitude").getValue().toString());
@@ -970,11 +1037,10 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     private class MyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            userlocation= FirebaseDatabase.getInstance().getReference("location").child(userInfo.get("senderId"));
+            userlocation= FirebaseDatabase.getInstance().getReference("location").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
             Location location = intent.getParcelableExtra(LocationUpdatesService.EXTRA_LOCATION);
             if (location != null) {
-                Toast.makeText(UserMapActivity.this, Utils.getLocationText(location),
-                        Toast.LENGTH_SHORT).show();
+                //Toast.makeText(UserMapActivity.this, Utils.getLocationText(location),Toast.LENGTH_SHORT).show();
                 HashMap hashMap=new HashMap();
                 hashMap.put("latitude",String.valueOf(location.getLatitude()));
                 hashMap.put("longitude",String.valueOf(location.getLongitude()));
@@ -983,7 +1049,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                     @Override
                     public void onComplete(@NonNull Task task) {
                         if(task.isSuccessful()){
-                            Log.d(TAG, "Updated");
+                            //Log.d(TAG, "Updated");
                         }else{
                             task.getException().getMessage();
                         }
