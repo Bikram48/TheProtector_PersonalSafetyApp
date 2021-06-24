@@ -51,6 +51,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -118,7 +119,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     private static GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private AutoCompleteTextView mSearchLocation;
-    private FloatingActionButton panicBtn,location_sharing_btn;
+    private FloatingActionButton location_sharing_btn;
     private static final int AUTOCOMPLETE_REQUEST_CODE = 1;
     private RelativeLayout mRelativeLayout;
     private Map<String, String> userInfo;
@@ -131,6 +132,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     private MyReceiver myReceiver;
     private LocationUpdatesService mService = null;
     private RelativeLayout relativeLayout;
+    private CardView panicBtn;
     private List<CompanionInfo> companionInfoList;
     CompanionAdapter companionAdapter;
     //private BottomNavigationView bottomNavigationView;
@@ -223,8 +225,8 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         mGps.setOnClickListener(this::onClick);
        // emergencyIcon=(ImageView) findViewById(R.id.emergency_icon);
         //emergencyIcon.setOnClickListener(this::onClick);
-       // panicBtn=(FloatingActionButton) findViewById(R.id.panicBtn);
-       // panicBtn.setOnClickListener(this);
+        panicBtn=(CardView) findViewById(R.id.sos_btn);
+        panicBtn.setOnClickListener(this);
 
         companionRequestRef=FirebaseDatabase.getInstance().getReference().child("Companion Requests");
         contactsRef=FirebaseDatabase.getInstance().getReference().child("Contacts");
@@ -652,20 +654,23 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                         .build(UserMapActivity.this);
                 startActivityForResult(inten, AUTOCOMPLETE_REQUEST_CODE);
                 break;
-           /* case R.id.emergency_icon:
+           /*case R.id.emergency_icon:
                 startActivity(new Intent(UserMapActivity.this,AllEmergencyContacts.class));
                 break;
 
-            *//*
+
             case R.id.add_companion:
                 messageandCallDialog();
                 break;
-                /*
-            case R.id.panicBtn:
-                sendMessage();
+
+            */
+
+            case R.id.sos_btn:
+                Toast.makeText(mService, "sos button clicked", Toast.LENGTH_SHORT).show();
+                //sendMessage();
                 break;
 
-                 */
+
         }
     }
 

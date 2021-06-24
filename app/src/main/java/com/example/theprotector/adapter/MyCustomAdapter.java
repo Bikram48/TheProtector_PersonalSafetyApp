@@ -104,9 +104,7 @@ public class MyCustomAdapter extends RecyclerView.Adapter<MyCustomAdapter.ViewHo
         private ImageView mImageView;
         private AppCompatCheckBox checkBox;
         private FloatingActionButton nameDisplayer;
-        AnimatedVectorDrawableCompat avd;
-        AnimatedVectorDrawable avd2;
-        int switchNumber = 0;
+
         SharedPreferences sharedPreferences;
 
         public ViewHolder(@NonNull View itemView) {

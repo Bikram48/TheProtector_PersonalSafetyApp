@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.theprotector.adapter.ContactAdapter;
@@ -27,7 +28,7 @@ import java.util.Map;
 public class AllEmergencyContacts extends AppCompatActivity implements View.OnClickListener {
     private RecyclerView recyclerView;
     private List<Contact> contactList;
-    private TextView addContact;
+    private ImageView addContact;
     public final String TAG=AllEmergencyContacts.this.getClass().getSimpleName();
     EmergencyContactAdapter contactAdapter;
     @Override
@@ -36,7 +37,7 @@ public class AllEmergencyContacts extends AppCompatActivity implements View.OnCl
         setContentView(R.layout.activity_all_emergency_contacts);
         recyclerView=(RecyclerView) findViewById(R.id.savedContactsRecyclerView);
         contactList=new ArrayList<>();
-        addContact=(TextView) findViewById(R.id.addContact);
+        addContact=(ImageView) findViewById(R.id.addContact);
         addContact.setOnClickListener(this);
         extractData();
     }

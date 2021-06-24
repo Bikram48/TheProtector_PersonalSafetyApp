@@ -20,4 +20,5 @@
 
     <string name="location_updated">Location Updated: %1$s</string>
     <string name="invite_description">Invite family or trusted friends to by your companions. They\'ll be able to see your location only when you invite them.</string>
+    <string name="alert_description">Add your trusted friends on your emergency contact list. The alert message will be sent when you click your power button four times and Emergency button.</string>
 </resources>

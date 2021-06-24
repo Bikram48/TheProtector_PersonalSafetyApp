@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat;
 
@@ -49,10 +51,37 @@ public class EmergencyContactAdapter extends RecyclerView.Adapter<EmergencyConta
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        if(position % 5 == 0){
+            holder.nameDisplayer.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(context,R.color.ripple_color_one)));
+            holder.shortname.setTextColor(ContextCompat.getColor(context,R.color.app_color));
+        }else if(position % 5 == 1){
+            holder.nameDisplayer.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(context,R.color.ripple_color_two)));
+            holder.shortname.setTextColor(ContextCompat.getColor(context,R.color.app_color));
+        }else if(position % 5 == 2){
+            holder.nameDisplayer.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(context,R.color.ripple_color_one)));
+            holder.shortname.setTextColor(ContextCompat.getColor(context,R.color.app_color));
+        }else if(position % 5 == 3){
+            holder.nameDisplayer.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(context,R.color.ripple_color_two)));
+            holder.shortname.setTextColor(ContextCompat.getColor(context,R.color.app_color));
+        }else if(position % 5 == 4){
+            holder.nameDisplayer.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(context,R.color.ripple_color_one)));
+            holder.shortname.setTextColor(ContextCompat.getColor(context,R.color.app_color));
+        }
+        String sName;
+
         Contact contacts=contactList.get(position);
+        holder.itemView.setTag(contacts);
         holder.mName.setText(contacts.getName());
         holder.mNumber.setText(contacts.getNumber());
         holder.contact=contacts;
+        String name=contacts.getName();
+        String[] split=name.split(" ");
+        if(split.length>1){
+            sName=String.valueOf(split[0].charAt(0))+String.valueOf(split[1].charAt(0));
+        }else{
+            sName=String.valueOf(split[0].charAt(0));
+        }
+        holder.shortname.setText(sName);
     }
 
     @Override
@@ -64,12 +93,14 @@ public class EmergencyContactAdapter extends RecyclerView.Adapter<EmergencyConta
         Contact contact;
 
         //private ArrayList<Contact> emergencyContacts;
+        private TextView shortname;
         private TextView mName;
         private TextView mNumber;
         private ImageView mImageView;
         private FloatingActionButton floatingActionButton;
         AnimatedVectorDrawableCompat avd;
         AnimatedVectorDrawable avd2;
+        private FloatingActionButton nameDisplayer;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -77,6 +108,8 @@ public class EmergencyContactAdapter extends RecyclerView.Adapter<EmergencyConta
             mNumber=itemView.findViewById(R.id.contactNumber);
             mImageView=itemView.findViewById(R.id.addContact);
             floatingActionButton=itemView.findViewById(R.id.floatingActionButton);
+            nameDisplayer=itemView.findViewById(R.id.floatingActionButton4);
+            shortname=itemView.findViewById(R.id.textView14);
             floatingActionButton.setOnClickListener(this);
         }
 
@@ -87,7 +120,7 @@ public class EmergencyContactAdapter extends RecyclerView.Adapter<EmergencyConta
 
         public void showAlertDialog(){
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setMessage("\"Do you really want to remove this number?\"");
+            builder.setMessage("Do you really want to remove this number?");
             builder.setTitle("THE PROTECTOR");
             builder.setCancelable(false);
             builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

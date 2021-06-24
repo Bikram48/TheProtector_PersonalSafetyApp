@@ -40,8 +40,8 @@
         <activity
             android:name=".LoginActivity"
             />
-        <activity android:name=".AllEmergencyContacts" />
-        <activity android:name=".ContactPicker" />
+        <activity android:name=".AllEmergencyContacts"  android:theme="@style/Theme.MaterialComponents.Light.NoActionBar"/>
+        <activity android:name=".ContactPicker"   android:theme="@style/Theme.MaterialComponents.Light.NoActionBar"/>
 
         <receiver android:name=".LocationReceiver" />
         <receiver

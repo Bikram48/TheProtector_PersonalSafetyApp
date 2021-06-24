@@ -198,7 +198,7 @@
         android:layout_marginBottom="20dp"
         android:backgroundTint="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/cardView6"
+        app:layout_constraintEnd_toStartOf="@+id/sos_btn"
         app:layout_constraintHorizontal_bias="0.5"
         app:cardCornerRadius="10dp"
         app:layout_constraintStart_toStartOf="parent">
@@ -224,7 +224,7 @@
     </androidx.cardview.widget.CardView>
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/cardView6"
+        android:id="@+id/sos_btn"
         android:layout_width="0dp"
         android:layout_height="100dp"
         android:layout_margin="20dp"
