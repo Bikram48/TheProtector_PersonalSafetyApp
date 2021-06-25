@@ -771,6 +771,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                 Toast.makeText(UserMapActivity.this, "Location updates has been stopped!!", Toast.LENGTH_SHORT).show();
                 tap_cancel.setText("I need help!");
                 alert_btn.setImageResource(R.drawable.alert_icon);
+                player.stop();
                 mPopupWindow.dismiss();
                 dialog.dismiss();
             }
@@ -1168,7 +1169,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
             if (flag_fall) {
                 if (f_send_msg) {
                     f_send_msg = false;
-                    showDialog();
+                    dialogShow();
                     //send_sms();
                 }
 
@@ -1183,7 +1184,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         public void onAccuracyChanged(Sensor sensor, int i) {
 
         }
-        public void showDialog(){
+        public void dialogShow(){
             final Dialog dialog=new Dialog(UserMapActivity.this);
             dialog.setCancelable(false);
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -1202,14 +1203,56 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                     if (f_send_msg) {
                         f_send_msg = false;
                         playTone();
-                        //send_sms();
+                        sendMessage();
                     }
                     textView.setText("SOS triggered!");
                     dialog.dismiss();
+                    feeling_safe_btn.setVisibility(View.VISIBLE);
+                    locationshare_btn.setVisibility(View.GONE);
+                    panicBtn.setVisibility(View.GONE);
                     relativeLayout.setBackground(getResources().getDrawable(R.drawable.alert_btn));
-                    mSettingIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_volume_off));
                     mSearchLocation.setHint("Alert Mode");
                     mSearchLocation.setGravity(Gravity.CENTER);
+                    // Initialize a new instance of LayoutInflater service
+                    LayoutInflater inflater = (LayoutInflater) UserMapActivity.this.getSystemService(LAYOUT_INFLATER_SERVICE);
+
+                    // Inflate the custom layout/view
+                    View customView = inflater.inflate(R.layout.popup_window,null);
+                    mRelativeLayout = (RelativeLayout) customView.findViewById(R.id.rl_custom_layout);
+                    TextView textView=customView.findViewById(R.id.tv);
+                    textView.setText(getResources().getString(R.string.alert_mode_text));
+                    mPopupWindow = new PopupWindow(
+                            customView,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    );
+
+                    // Set an elevation value for popup window
+                    // Call requires API level 21
+                    if(Build.VERSION.SDK_INT>=21){
+                        mPopupWindow.setElevation(5.0f);
+                    }
+
+                    // Get a reference for the custom view close button
+                    ImageButton closeButton = (ImageButton) customView.findViewById(R.id.ib_close);
+                    // Set a click listener for the popup window close button
+                    closeButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            // Dismiss the popup window
+                            mPopupWindow.dismiss();
+                        }
+                    });
+                    mPopupWindow.showAtLocation(mRelativeLayout, Gravity.TOP,0,350);
+
+                    mService.requestLocationUpdates();
+                    feeling_safe_btn.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            showDialog();
+                        }
+                    });
+
                 }
             }.start();
             progressBar.setOnClickListener(new View.OnClickListener() {
