@@ -50,27 +50,11 @@ public class FCMMessageReceiverService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
-        Map<String,String> userInfo=new HashMap<>();
-        for(String key:remoteMessage.getData().keySet()){
-            userInfo.put(key,remoteMessage.getData().get(key));
-            //Log.d(TAG, "onMessageReceived key: "+key+" Data: "+remoteMessage.getData().get(key));
-        }
-
 
         databaseReference= FirebaseDatabase.getInstance().getReference("Requests");
-        if(remoteMessage.getNotification()!=null&&remoteMessage.getData().size()>0){
-            Log.d(TAG, "Username received: "+userInfo.get("senderUsername"));
+        if(remoteMessage.getNotification()!=null){
+
             Intent intent=new Intent(getApplicationContext(),UserMapActivity.class);
-            if(userInfo.get("status").equals("companion_request")) {
-                intent.putExtra("from", "notification");
-            }
-            if(userInfo.get("status").equals("accepted")) {
-                intent.putExtra("status", "accepted");
-            }
-            if(userInfo.get("status").equals("declined")) {
-                intent.putExtra("status", "declined");
-            }
-            intent.putExtra("userinfo",(Serializable)userInfo);
             PendingIntent pendingIntent=PendingIntent.getActivity(this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT);
             String title=remoteMessage.getNotification().getTitle();
             String body=remoteMessage.getNotification().getBody();
@@ -85,11 +69,6 @@ public class FCMMessageReceiverService extends FirebaseMessagingService {
                     .build();
             NotificationManager notificationManager=(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             notificationManager.notify(1002,notification);
-        }
-
-        if(remoteMessage.getData().size()>0){
-
-
         }
     }
 
@@ -106,7 +85,7 @@ public class FCMMessageReceiverService extends FirebaseMessagingService {
         Log.d(TAG, "onDeletedMessages called ");
     }
 
-    public static void sendNotification(String token, String receiverUsername,String receiverUserid,String senderUsername, String senderId,String body,String status, Context context){
+    public static void sendNotification(String token,String body,Context context){
         RequestQueue requestQueue= RequestQueueInstance.getInstance(context).getRequestQueue();
         JSONObject mainObj=new JSONObject();
         try {
@@ -116,13 +95,7 @@ public class FCMMessageReceiverService extends FirebaseMessagingService {
             notificationObject.put("title","The Protector");
             notificationObject.put("body",body);
             mainObj.put("notification",notificationObject);
-            JSONObject dataObject=new JSONObject();
-            dataObject.put("senderUsername",senderUsername);
-            dataObject.put("senderId",senderId);
-            dataObject.put("receiverUsername",receiverUsername);
-            dataObject.put("receiverId",receiverUserid);
-            dataObject.put("status",status);
-            mainObj.put("data",dataObject);
+
             JsonObjectRequest request=new JsonObjectRequest(Request.Method.POST, URL, mainObj, new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
@@ -151,7 +124,7 @@ public class FCMMessageReceiverService extends FirebaseMessagingService {
             e.printStackTrace();
         }
     }
-    public static  void getToken(String userId,String username,Context context){
+    public static  void getToken(String userId,String username,Context context,String body){
 
         DatabaseReference databaseReference=FirebaseDatabase.getInstance().getReference("Tokens").child(userId);
         databaseReference.addValueEventListener(new ValueEventListener() {
@@ -161,11 +134,8 @@ public class FCMMessageReceiverService extends FirebaseMessagingService {
                 //  Log.d(TAG, "onDataChange: "+tokenKey);
                 //Toast.makeText(ContactListActivity.this, "Tokens "+tokenKey, Toast.LENGTH_SHORT).show();
                 if(tokenKey!=null) {
-                    String senderUsername= FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
-                    String senderId=FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    // add_companion_request(senderId,userId);
-                    String body=senderUsername+" has invited you to be his companion";
-                    FCMMessageReceiverService.sendNotification(tokenKey,username,userId,senderUsername,senderId,body,"companion_request",context);
+
+                    FCMMessageReceiverService.sendNotification(tokenKey,body,context);
                     //startActivity(new Intent(ContactListActivity.this,UserMapActivity.class));
                 }
             }

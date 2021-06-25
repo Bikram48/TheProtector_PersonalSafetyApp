@@ -12,9 +12,11 @@ import android.os.AsyncTask;
 import android.telephony.SmsManager;
 import android.util.Log;
 
+import com.example.theprotector.FCMMessageReceiverService;
 import com.example.theprotector.MyReceiver;
 import com.example.theprotector.SharedPreference;
 import com.example.theprotector.UserMapActivity;
+import com.example.theprotector.model.Contact;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -82,6 +84,20 @@ public class AlertUtility {
             for (Map.Entry<String, ?> contacts : SharedPreference.getData(context).entrySet()) {
                 smsManager.sendMultipartTextMessage(contacts.getValue().toString(), null, parts, null, null);
             }
+                SharedPreferences sharedPref = context.getSharedPreferences("accept_comapnion", context.MODE_PRIVATE);
+                Map<String, ?> allEntries = sharedPref.getAll();
+                if(allEntries.size()>0) {
+                    for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
+                        String[] nameandcontact = entry.getValue().toString().split("/");
+                        String requestUsername = nameandcontact[0];
+                        String phone = nameandcontact[1];
+                        Log.d("valueshai", requestUsername + ":phone " + phone);
+                        FCMMessageReceiverService.getToken(entry.getKey(),requestUsername,context,"Your companion is in emergency please help him!! Tap here to view his last location");
+                        //smsManager.sendMultipartTextMessage(phone, null, parts, null, null);
+                    }
+                }
+
+
             return null;
         }
 

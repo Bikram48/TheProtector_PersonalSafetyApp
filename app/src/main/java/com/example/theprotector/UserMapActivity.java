@@ -24,7 +24,6 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -59,17 +58,8 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.theprotector.Constants;
-import com.example.theprotector.ContactListActivity;
-import com.example.theprotector.FCMMessageReceiverService;
-import com.example.theprotector.FallDetectAlgo;
-import com.example.theprotector.LocationUpdatesService;
-import com.example.theprotector.PowerButtonService;
-import com.example.theprotector.R;
 import com.example.theprotector.Utility.AlertUtility;
-import com.example.theprotector.Utility.DialogBoxes;
 import com.example.theprotector.Utility.Utilities;
-import com.example.theprotector.Utility.Utils;
 import com.example.theprotector.adapter.CompanionAdapter;
 import com.example.theprotector.model.CompanionInfo;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -114,16 +104,16 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     private ImageView mSettingIcon,mGps,emergencyIcon;
     private FloatingActionButton mCompanionAddBtn;
     private String TAG = "MapDemo";
-    private boolean isClicked=false;
+    private boolean isClicked=false,isEmergency=false;
     private PopupWindow mPopupWindow;
     private static GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private AutoCompleteTextView mSearchLocation;
-    private FloatingActionButton location_sharing_btn;
+    private FloatingActionButton location_sharing_btn,alert_btn;
     private static final int AUTOCOMPLETE_REQUEST_CODE = 1;
     private RelativeLayout mRelativeLayout;
     private Map<String, String> userInfo;
-    private TextView companion_name;
+    private TextView companion_name,emergency_timer,tap_cancel;
     public static final boolean SERVERTRACE = false;
     private SensorManager sensorManager;
     private Sensor accelerometer;
@@ -132,8 +122,10 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     private MyReceiver myReceiver;
     private LocationUpdatesService mService = null;
     private RelativeLayout relativeLayout;
+    private Map<String,String> emergencyContacts;;
     private CardView panicBtn;
     private List<CompanionInfo> companionInfoList;
+    private  CountDownTimer countDownTimer;
     CompanionAdapter companionAdapter;
     //private BottomNavigationView bottomNavigationView;
     String request_status = "request_pending";
@@ -142,10 +134,10 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     View mapView;
     ContactListActivity contactListActivity;
     DatabaseReference userlocation,companionRequestRef,userRef,contactsRef;
-    DialogBoxes dialogBoxes;
     Map<String, String> myContacts = new HashMap<>(1);
     SharedPreferences sh;
     MediaPlayer player;
+    SharedPreferences emergencyList;
 
     // Monitors the state of the connection to the service.
     public ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -212,6 +204,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         relativeLayout=findViewById(R.id.relative);
         mSettingIcon = findViewById(R.id.setting_icon);
         mSettingIcon.setOnClickListener(this::onClick);
+        emergencyContacts=new HashMap<>();
        // bottomNavigationView=findViewById(R.id.bottomNavigationView);
         sh = getSharedPreferences(Constants.PREF_FILE_NAME, MODE_PRIVATE);
         fallDetectAlgo = new FallDetectAlgo();
@@ -223,11 +216,14 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         companionDisplay=findViewById(R.id.companionRecyclerView);
         companionDisplay.setLayoutManager(new LinearLayoutManager(UserMapActivity.this,LinearLayoutManager.HORIZONTAL,false));
         mGps.setOnClickListener(this::onClick);
+        emergency_timer=findViewById(R.id.emergency_timer);
+        alert_btn=findViewById(R.id.alert_btn);
+        emergencyList=getSharedPreferences("accept_comapnion",Context.MODE_PRIVATE);
        // emergencyIcon=(ImageView) findViewById(R.id.emergency_icon);
         //emergencyIcon.setOnClickListener(this::onClick);
         panicBtn=(CardView) findViewById(R.id.sos_btn);
         panicBtn.setOnClickListener(this);
-
+        tap_cancel=findViewById(R.id.tap_cancel);
         companionRequestRef=FirebaseDatabase.getInstance().getReference().child("Companion Requests");
         contactsRef=FirebaseDatabase.getInstance().getReference().child("Contacts");
         userRef=FirebaseDatabase.getInstance().getReference("Users");
@@ -241,11 +237,15 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         }
         fields = Arrays.asList(Place.Field.ID, Place.Field.NAME);
         mSearchLocation.setFocusable(false);
-        dialogBoxes=new DialogBoxes(this);
         myContacts.put(Constants.KEY_CON1, sh.getString(Constants.KEY_CON1, ""));
         fallDetectAlgo = new FallDetectAlgo();
         fallDetectAlgo.setDaemon(true);
         fallDetectAlgo.start();
+        if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
+            FallDetector fallDetector = new FallDetector();
+            fallDetector.execute();
+        }
+
         init();
 
     }
@@ -292,6 +292,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                         }else{
                                             sName=String.valueOf(split[0].charAt(0));
                                         }
+                                        FCMMessageReceiverService.getToken(FirebaseAuth.getInstance().getCurrentUser().getUid(),requestUsername,UserMapActivity.this,requestUsername+" has invited you to be their companion. Tap here to accept the request");
                                         requestViewHolder.name.setText(sName);
                                         requestViewHolder.imageView.setOnClickListener(new View.OnClickListener() {
                                             @Override
@@ -311,11 +312,12 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                                     @Override
                                                     public void onClick(View view) {
                                                         requestViewHolder.companion_request_btn.setForeground(getDrawable(R.drawable.ic_connected));
-                                                        FCMMessageReceiverService.getToken(listUserId,requestUsername,UserMapActivity.this);
+
                                                         companionRequestRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(listUserId).child("requestType").setValue("lets_track").addOnCompleteListener(new OnCompleteListener<Void>() {
                                                             @Override
                                                             public void onComplete(@NonNull Task<Void> task) {
                                                                 if(task.isSuccessful()){
+                                                                   //
                                                                     companionRequestRef.child(listUserId).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("requestType").setValue("accepted");
                                                                     bottomSheetDialog.dismiss();
                                                                 }
@@ -369,7 +371,8 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                         final String requestUsername=snapshot.child("Name").getValue().toString();
                                         final String number=snapshot.child("cell").getValue().toString();
                                         ContactListActivity contactListActivity=new ContactListActivity();
-                                        FCMMessageReceiverService.getToken(listUserId,requestUsername,UserMapActivity.this);
+
+                                        //FCMMessageReceiverService.getToken(listUserId,requestUsername,UserMapActivity.this,requestUsername+" has invited you to be their comapnion");
                                         Log.d(TAG, "onDataChange: "+requestUsername);
                                         String[] split=requestUsername.split(" ");
                                         if(split.length>1){
@@ -406,7 +409,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                 });
                             }
                             else if(type.equals("accepted")){
-
+                                isEmergency=true;
                                 location_sharing_btn.setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View view) {
@@ -465,8 +468,15 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                         requestViewHolder.companion_request_btn.setForeground(getDrawable(R.drawable.ic_connected));
                                         final String requestUsername=snapshot.child("Name").getValue().toString();
                                         final String number=snapshot.child("cell").getValue().toString();
+                                        FCMMessageReceiverService.getToken(FirebaseAuth.getInstance().getCurrentUser().getUid(),requestUsername,UserMapActivity.this,requestUsername+ " has accepted your request. ");
                                         ContactListActivity contactListActivity=new ContactListActivity();
-                                        //FCMMessageReceiverService.getToken(listUserId,requestUsername,UserMapActivity.this);
+                                        emergencyContacts.put(listUserId,requestUsername+"/"+number);
+                                        SharedPreferences.Editor editor = emergencyList.edit();
+                                        for (String s : emergencyContacts.keySet()) {
+                                            editor.putString(s, emergencyContacts.get(s));
+                                        }
+                                        editor.commit();
+                                        //FCMMessageReceiverService.getToken(listUserId,requestUsername,UserMapActivity.this,requestUsername+" is now your companion");
                                         Log.d(TAG, "onDataChange: "+requestUsername);
                                         String[] split=requestUsername.split(" ");
                                         if(split.length>1){
@@ -610,31 +620,6 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         companionInfoList=new ArrayList<>();
         Log.d(TAG, "check: "+sh.getString(Constants.KEY_CON1,null));
 
-        if (getIntent().getStringExtra("from") != null) {
-            requestref = FirebaseDatabase.getInstance().getReference("request_status");
-            if (getIntent().getStringExtra("from").equals("notification")) {
-                userInfo = (Map<String, String>) getIntent().getSerializableExtra("userinfo");
-                updateRequest();
-                // Log.d(TAG, "userinfo: "+userInfo.get("senderUsername"));
-                dialogBoxes.showDialog(userInfo);
-            }
-        }
-        if (getIntent().getStringExtra("status") != null) {
-            if (getIntent().getStringExtra("status").equals("accepted")) {
-                userInfo = (Map<String, String>) getIntent().getSerializableExtra("userinfo");
-                // gps = new GPSTracker(UserMapActivity.this, userInfo);
-                acceptedRequest();
-                Log.d(TAG, "userinfo: " + userInfo.get("senderUsername"));
-                dialogBoxes.showAcceptedDialog(userInfo);
-            }
-        }
-        if (getIntent().getStringExtra("status") != null) {
-            if (getIntent().getStringExtra("status").equals("declined")) {
-                userInfo = (Map<String, String>) getIntent().getSerializableExtra("userinfo");
-                dialogBoxes.showCancelledDialog(userInfo);
-            }
-        }
-
     }
     @Override
     public void onClick(View v) {
@@ -666,8 +651,33 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
             */
 
             case R.id.sos_btn:
-                Toast.makeText(mService, "sos button clicked", Toast.LENGTH_SHORT).show();
-                //sendMessage();
+
+                if(isClicked){
+                    alert_btn.setImageResource(R.drawable.alert_icon);
+                    tap_cancel.setText("I need help!");
+                    if(countDownTimer!=null) {
+                        countDownTimer.cancel();
+                    }
+                    emergency_timer.setVisibility(View.GONE);
+                }else {
+                    //Toast.makeText(mService, "sos button clicked", Toast.LENGTH_SHORT).show();
+                    alert_btn.setImageResource(0);
+                    emergency_timer.setVisibility(View.VISIBLE);
+                    countDownTimer=new CountDownTimer(5000, 1000) {
+                        public void onTick(long millisUntilFinished) {
+                            emergency_timer.setText(millisUntilFinished / 1000 + "");
+                            tap_cancel.setText("Tap to cancel");
+                        }
+
+                        public void onFinish() {
+                            sendMessage();
+                        }
+                    };
+                    countDownTimer.start();
+
+                }
+                isClicked=!isClicked;
+
                 break;
 
 
@@ -677,43 +687,6 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     private void sendMessage() {
         AlertUtility alertUtility=new AlertUtility(UserMapActivity.this);
         alertUtility.new SendMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-    }
-
-
-
-
-    private void acceptedRequest(){
-        HashMap hashMap=new HashMap();
-        hashMap.put("status","accepted");
-        FirebaseDatabase.getInstance().getReference("request_status").child(userInfo.get("senderId")).child(userInfo.get("receiverId")).updateChildren(hashMap).addOnCompleteListener(new OnCompleteListener() {
-            @Override
-            public void onComplete(@NonNull Task task) {
-                if(task.isSuccessful()){
-
-                }else {
-                    task.getException().getMessage();
-                }
-            }
-        });
-    }
-
-
-
-    private void updateRequest() {
-        HashMap hashMap = new HashMap();
-        hashMap.put("status", "pending");
-        if (request_status.equals("request_pending")) {
-            requestref.child(userInfo.get("senderId")).child(userInfo.get("receiverId")).updateChildren(hashMap).addOnCompleteListener(new OnCompleteListener() {
-                @Override
-                public void onComplete(@NonNull Task task) {
-                    if (task.isSuccessful()) {
-                        request_status = "pending";
-                    } else {
-                        task.getException().getMessage();
-                    }
-                }
-            });
-        }
     }
 
 
@@ -837,10 +810,13 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                         String status = snapshot.child("status").getValue().toString();
                         if (status.equals("accepted")) {
                             if(userInfo.get("senderId").equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+                                /*
                                 if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
                                     FallDetector fallDetector = new FallDetector();
                                     fallDetector.execute();
                                 }
+
+                                 */
 
                             }
                            // updatedUserLocation();

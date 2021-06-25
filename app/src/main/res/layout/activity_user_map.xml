@@ -203,6 +203,7 @@
         app:cardCornerRadius="10dp"
         app:layout_constraintStart_toStartOf="parent">
         <TextView
+            android:id="@+id/watch_over"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -234,15 +235,36 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/cardView5">
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:src="@drawable/alert_icon"
-            android:backgroundTint="#f71000"
-            android:layout_marginTop="10dp"
-            app:tint="@null"/>
+            android:layout_gravity="center_horizontal">
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/alert_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/alert_icon"
+                android:backgroundTint="#f71000"
+                app:borderWidth="0dp"
+                android:layout_marginTop="10dp"
+                app:tint="@null"/>
+            <TextView
+
+                android:layout_height="wrap_content"
+                android:id="@+id/emergency_timer"
+                android:layout_width="wrap_content"
+                android:text="OK"
+                android:elevation="6dp"
+                android:textSize="12dp"
+                android:textStyle="bold"
+                android:textColor="#fff"
+                app:layout_anchor="@id/alert_btn"
+                android:visibility="gone"
+                app:layout_anchorGravity="center"/>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
         <TextView
+            android:id="@+id/tap_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
