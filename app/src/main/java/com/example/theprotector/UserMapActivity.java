@@ -50,6 +50,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -113,7 +114,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     private static final int AUTOCOMPLETE_REQUEST_CODE = 1;
     private RelativeLayout mRelativeLayout;
     private Map<String, String> userInfo;
-    private TextView companion_name,emergency_timer,tap_cancel;
+    private TextView companion_name,emergency_timer,tap_cancel,watch_over;
     public static final boolean SERVERTRACE = false;
     private SensorManager sensorManager;
     private Sensor accelerometer;
@@ -123,7 +124,8 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     private LocationUpdatesService mService = null;
     private RelativeLayout relativeLayout;
     private Map<String,String> emergencyContacts;;
-    private CardView panicBtn;
+    private CardView panicBtn,locationshare_btn;
+    private AppCompatButton feeling_safe_btn;
     private List<CompanionInfo> companionInfoList;
     private  CountDownTimer countDownTimer;
     CompanionAdapter companionAdapter;
@@ -211,6 +213,8 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         fallDetectAlgo.setDaemon(true);
         fallDetectAlgo.start();
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        feeling_safe_btn=findViewById(R.id.feeling_safet_btn);
+        watch_over=findViewById(R.id.watch_over);
         //sh.edit().clear().commit();
         mGps = findViewById(R.id.ic_gps);
         companionDisplay=findViewById(R.id.companionRecyclerView);
@@ -222,6 +226,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
        // emergencyIcon=(ImageView) findViewById(R.id.emergency_icon);
         //emergencyIcon.setOnClickListener(this::onClick);
         panicBtn=(CardView) findViewById(R.id.sos_btn);
+        locationshare_btn=(CardView) findViewById(R.id.cardView5);
         panicBtn.setOnClickListener(this);
         tap_cancel=findViewById(R.id.tap_cancel);
         companionRequestRef=FirebaseDatabase.getInstance().getReference().child("Companion Requests");
@@ -414,6 +419,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                     @Override
                                     public void onClick(View view) {
                                         if(isClicked) {
+                                            watch_over.setText("Watch over me");
                                             location_sharing_btn.setImageResource(R.drawable.ic_walk);
                                             location_sharing_btn.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(UserMapActivity.this,R.color.text_color)));
                                             mService.removeLocationUpdates();
@@ -425,6 +431,8 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                             // Inflate the custom layout/view
                                             View customView = inflater.inflate(R.layout.popup_window,null);
                                             mRelativeLayout = (RelativeLayout) customView.findViewById(R.id.rl_custom_layout);
+                                            TextView textView=customView.findViewById(R.id.tv);
+                                            textView.setText(getResources().getString(R.string.stop_location_text));
                                             mPopupWindow = new PopupWindow(
                                                     customView,
                                                     ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -452,6 +460,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                             location_sharing_btn.setImageResource(R.drawable.ic_location_disabled);
                                             mService.requestLocationUpdates();
                                             location_sharing_btn.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red_color)));
+                                            watch_over.setText("Stop Sharing");
                                         }
                                         isClicked=!isClicked;
                                     }
@@ -670,6 +679,52 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                         }
 
                         public void onFinish() {
+                            tap_cancel.setText("Alerting");
+                            feeling_safe_btn.setVisibility(View.VISIBLE);
+                            locationshare_btn.setVisibility(View.GONE);
+                            panicBtn.setVisibility(View.GONE);
+                            relativeLayout.setBackground(getResources().getDrawable(R.drawable.alert_btn));
+                            mSearchLocation.setHint("Alert Mode");
+                            mSearchLocation.setGravity(Gravity.CENTER);
+                            // Initialize a new instance of LayoutInflater service
+                            LayoutInflater inflater = (LayoutInflater) UserMapActivity.this.getSystemService(LAYOUT_INFLATER_SERVICE);
+
+                            // Inflate the custom layout/view
+                            View customView = inflater.inflate(R.layout.popup_window,null);
+                            mRelativeLayout = (RelativeLayout) customView.findViewById(R.id.rl_custom_layout);
+                            TextView textView=customView.findViewById(R.id.tv);
+                            textView.setText(getResources().getString(R.string.alert_mode_text));
+                            mPopupWindow = new PopupWindow(
+                                    customView,
+                                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                                    ViewGroup.LayoutParams.WRAP_CONTENT
+                            );
+
+                            // Set an elevation value for popup window
+                            // Call requires API level 21
+                            if(Build.VERSION.SDK_INT>=21){
+                                mPopupWindow.setElevation(5.0f);
+                            }
+
+                            // Get a reference for the custom view close button
+                            ImageButton closeButton = (ImageButton) customView.findViewById(R.id.ib_close);
+                            // Set a click listener for the popup window close button
+                            closeButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    // Dismiss the popup window
+                                    mPopupWindow.dismiss();
+                                }
+                            });
+                            mPopupWindow.showAtLocation(mRelativeLayout, Gravity.TOP,0,350);
+
+                            mService.requestLocationUpdates();
+                            feeling_safe_btn.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    showDialog();
+                                }
+                            });
                             sendMessage();
                         }
                     };
@@ -682,6 +737,45 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
 
 
         }
+    }
+
+    public void showDialog() {
+        //body_message.setText("Hey "+", "+" has requested that you to be his companion. Keep an eye on her as she is on the move");
+        // DatabaseReference databaseReference= FirebaseDatabase.getInstance().getReference("Request").child()
+        final Dialog dialog=new Dialog(UserMapActivity.this);
+        dialog.setCancelable(false);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialog.setContentView(R.layout.dialog_custom);
+        TextView cancel_btn = dialog.findViewById(R.id.cancel_btn);
+        cancel_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+
+            }
+        });
+        TextView ok_btn = dialog.findViewById(R.id.ok_btn);
+        TextView body_message = dialog.findViewById(R.id.body_message);
+        body_message.setText("Are you sure everything is okay?");
+        ok_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                feeling_safe_btn.setVisibility(View.GONE);
+                locationshare_btn.setVisibility(View.VISIBLE);
+                panicBtn.setVisibility(View.VISIBLE);
+                relativeLayout.setBackground(getResources().getDrawable(R.drawable.bg_btn));
+                mSearchLocation.setHint("Where are you going?");
+                mSearchLocation.setGravity(Gravity.CENTER_VERTICAL);
+                mService.removeLocationUpdates();
+                Toast.makeText(UserMapActivity.this, "Location updates has been stopped!!", Toast.LENGTH_SHORT).show();
+                tap_cancel.setText("I need help!");
+                alert_btn.setImageResource(R.drawable.alert_icon);
+                mPopupWindow.dismiss();
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
     }
 
     private void sendMessage() {

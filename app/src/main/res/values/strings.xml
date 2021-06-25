@@ -21,4 +21,7 @@
     <string name="location_updated">Location Updated: %1$s</string>
     <string name="invite_description">Invite family or trusted friends to by your companions. They\'ll be able to see your location only when you invite them.</string>
     <string name="alert_description">Add your trusted friends on your emergency contact list. The alert message will be sent when you click your power button four times and Emergency button.</string>
+    <string name="feeling_safe_msg">I am feeling safe</string>
+    <string name="stop_location_text">You are now sharing location with your companion. Please click Stop sharing to stop the location updates.</string>
+    <string name="alert_mode_text">You are now in alert mode and your are sharing your location with companions. We have also notify companions and other emergency contacts to let them know that you need help </string>
 </resources>

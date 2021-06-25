@@ -20,7 +20,7 @@
         android:id="@+id/tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="You are now sharing location with your companion. Please click Stop sharing to stop the location updates."
+        android:text="@string/stop_location_text"
         android:layout_centerInParent="true"
         android:textAlignment="textStart"
         android:textColor="@color/black"
