@@ -58,7 +58,7 @@
 
         <AutoCompleteTextView
             android:id="@+id/search_location"
-            android:layout_width="280dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_toRightOf="@+id/verticalLine"
             android:background="@null"
@@ -72,12 +72,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="End"
-            android:visibility="gone"
             android:layout_alignParentRight="true"
+            android:layout_marginStart="10dp"
+            android:visibility="gone"
+            android:layout_marginEnd="15dp"
             android:layout_centerVertical="true"
             android:textColor="@color/white"
             android:textSize="20sp"
-            android:layout_toRightOf="@+id/search_location"/>
+           />
 
     </RelativeLayout>
 

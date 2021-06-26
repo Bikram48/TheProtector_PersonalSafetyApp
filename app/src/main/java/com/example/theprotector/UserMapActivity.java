@@ -137,7 +137,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     List<Place.Field> fields;
     View mapView;
     ContactListActivity contactListActivity;
-    DatabaseReference userlocation,companionRequestRef,userRef,contactsRef;
+    DatabaseReference userlocation,companionRequestRef,userRef,contactsRef,destinationRef,userloc;
     Map<String, String> myContacts = new HashMap<>(1);
     SharedPreferences sh;
     MediaPlayer player;
@@ -234,6 +234,8 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         tap_cancel=findViewById(R.id.tap_cancel);
         companionRequestRef=FirebaseDatabase.getInstance().getReference().child("Companion Requests");
         contactsRef=FirebaseDatabase.getInstance().getReference().child("Contacts");
+        destinationRef=FirebaseDatabase.getInstance().getReference("destination");
+        userloc=FirebaseDatabase.getInstance().getReference("location");
         userRef=FirebaseDatabase.getInstance().getReference("Users");
         requestPermission();
         startService(new Intent(this, PowerButtonService.class));
@@ -431,6 +433,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                 });
                             }
                             else if(type.equals("accepted")){
+                                end_trip.setVisibility(View.VISIBLE);
                                 isEmergency=true;
                                 location_sharing_btn.setOnClickListener(new View.OnClickListener() {
                                     @Override
@@ -486,7 +489,6 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                     @RequiresApi(api = Build.VERSION_CODES.M)
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-
                                        // Log.d(TAG, "SenderId check: "+FirebaseAuth.getInstance().getCurrentUser().getUid());
                                         updatedUserLocation(FirebaseAuth.getInstance().getCurrentUser().getUid());
                                         String sName;
@@ -494,6 +496,72 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                         requestViewHolder.companion_request_btn.setForeground(getDrawable(R.drawable.ic_connected));
                                         final String requestUsername=snapshot.child("Name").getValue().toString();
                                         final String number=snapshot.child("cell").getValue().toString();
+                                        Log.d("companions_id", ": "+listUserId);
+                                        String[] userId=new String[]{listUserId};
+                                        Log.d(TAG, "current id: "+FirebaseAuth.getInstance().getCurrentUser().getUid());
+                                        end_trip.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                 Dialog dialog=new Dialog(UserMapActivity.this);
+                                                dialog.setCancelable(false);
+                                                dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                                                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                                dialog.setContentView(R.layout.dialog_custom);
+                                                TextView cancel_btn = dialog.findViewById(R.id.cancel_btn);
+                                                cancel_btn.setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        dialog.dismiss();
+
+                                                    }
+                                                });
+                                                TextView ok_btn = dialog.findViewById(R.id.ok_btn);
+                                                TextView body_message = dialog.findViewById(R.id.body_message);
+                                                body_message.setText("Are you sure you want to end the trip?");
+
+                                                ok_btn.setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        for(String id:userId) {
+                                                            FCMMessageReceiverService.getToken(id, requestUsername, UserMapActivity.this, "Your companion has ended the trip");
+                                                        }
+                                                        mService.removeLocationUpdates();
+
+                                                        companionRequestRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<Void> task) {
+                                                                if(task.isSuccessful()) {
+                                                                    for (String id : userId) {
+                                                                        FirebaseDatabase.getInstance().getReference().child("Companion Requests").child(id).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                            @Override
+                                                                            public void onComplete(@NonNull Task<Void> task) {
+                                                                                if (task.isSuccessful()) {
+                                                                                    userloc.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                                        @Override
+                                                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                                                            if (task.isSuccessful()) {
+                                                                                                destinationRef.child((FirebaseAuth.getInstance().getCurrentUser().getUid())).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                                                    @Override
+                                                                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                                                                        emergencyList.edit().clear().commit();
+                                                                                                    }
+                                                                                                });
+                                                                                            }
+                                                                                        }
+                                                                                    });
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                        dialog.dismiss();
+                                                    }
+                                                });
+                                                dialog.show();
+                                            }
+                                        });
                                         FCMMessageReceiverService.getToken(FirebaseAuth.getInstance().getCurrentUser().getUid(),requestUsername,UserMapActivity.this,requestUsername+ " has accepted your request. ");
                                         ContactListActivity contactListActivity=new ContactListActivity();
                                         emergencyContacts.put(listUserId,requestUsername+"/"+number);
@@ -1131,11 +1199,13 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                     FirebaseDatabase.getInstance().getReference("destination").child(senderId).addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            Double lat=Double.parseDouble(snapshot.child("latitude").getValue().toString());
-                            Double lon=Double.parseDouble(snapshot.child("longitude").getValue().toString());
-                            MarkerOptions options = new MarkerOptions().position(new LatLng(lat,lon)).title("Destination Location");
-                            options.icon(BitmapDescriptorFactory.fromBitmap(resizeMapIcons("destination_marker",100,150)));
-                            mMap.addMarker(options);
+                            if(snapshot.exists()) {
+                                Double lat = Double.parseDouble(snapshot.child("latitude").getValue().toString());
+                                Double lon = Double.parseDouble(snapshot.child("longitude").getValue().toString());
+                                MarkerOptions options = new MarkerOptions().position(new LatLng(lat, lon)).title("Destination Location");
+                                options.icon(BitmapDescriptorFactory.fromBitmap(resizeMapIcons("destination_marker", 100, 150)));
+                                mMap.addMarker(options);
+                            }
                             //getRoutToMarker(new LatLng(newLat[0],newLong[0]),new LatLng(lat,lon));
                         }
 
