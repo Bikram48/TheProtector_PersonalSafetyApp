@@ -28,6 +28,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
@@ -52,6 +53,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -106,7 +108,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     private FloatingActionButton mCompanionAddBtn;
     private String TAG = "MapDemo";
     private boolean isClicked=false,isEmergency=false;
-    private PopupWindow mPopupWindow;
+    private PopupWindow mPopupWindow,invitePopWindow;
     private static GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private AutoCompleteTextView mSearchLocation;
@@ -114,7 +116,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     private static final int AUTOCOMPLETE_REQUEST_CODE = 1;
     private RelativeLayout mRelativeLayout;
     private Map<String, String> userInfo;
-    private TextView companion_name,emergency_timer,tap_cancel,watch_over;
+    private TextView companion_name,emergency_timer,tap_cancel,watch_over,end_trip;
     public static final boolean SERVERTRACE = false;
     private SensorManager sensorManager;
     private Sensor accelerometer;
@@ -215,6 +217,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         feeling_safe_btn=findViewById(R.id.feeling_safet_btn);
         watch_over=findViewById(R.id.watch_over);
+        end_trip=findViewById(R.id.end_trip);
         //sh.edit().clear().commit();
         mGps = findViewById(R.id.ic_gps);
         companionDisplay=findViewById(R.id.companionRecyclerView);
@@ -246,12 +249,23 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         fallDetectAlgo = new FallDetectAlgo();
         fallDetectAlgo.setDaemon(true);
         fallDetectAlgo.start();
+
         if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
             FallDetector fallDetector = new FallDetector();
             fallDetector.execute();
         }
 
+
         init();
+        companionRequest();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                inviteCompanionBox();
+            }
+        },100);
+
+//
 
     }
 
@@ -263,6 +277,9 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
 
         bindService(new Intent(this, LocationUpdatesService.class), mServiceConnection,
                 Context.BIND_AUTO_CREATE);
+    }
+
+    protected void companionRequest() {
         FirebaseRecyclerOptions<CompanionInfo> options =
                 new FirebaseRecyclerOptions.Builder<CompanionInfo>()
                         .setQuery(companionRequestRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid()), CompanionInfo.class)
@@ -505,6 +522,20 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                                 TextView textView=bottomSheetView.findViewById(R.id.shortcutName);
                                                 TextView mNumber=bottomSheetView.findViewById(R.id.number_companion);
                                                 TextView invite=bottomSheetView.findViewById(R.id.textView);
+                                                AppCompatButton removebtn=bottomSheetView.findViewById(R.id.appCompatButton);
+                                                removebtn.setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        companionRequestRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<Void> task) {
+                                                                if(task.isSuccessful()){
+                                                                    bottomSheetDialog.dismiss();
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                });
                                                 textView.setText(sName);
                                                 mNumber.setText(number);
                                                 invite.setText(requestUsername);
@@ -565,12 +596,27 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                                 textView.setText(sName);
                                                 mNumber.setText(number);
                                                 invite.setText(requestUsername);
+                                                AppCompatButton removebtn=bottomSheetView.findViewById(R.id.appCompatButton);
+                                                removebtn.setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        companionRequestRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<Void> task) {
+                                                                if(task.isSuccessful()){
+                                                                    bottomSheetDialog.dismiss();
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                });
                                                 bottomSheetView.findViewById(R.id.message_btn).setOnClickListener(new View.OnClickListener() {
                                                     @Override
                                                     public void onClick(View view) {
                                                         Utilities.sendMessage(number,"Hello",UserMapActivity.this);
                                                     }
                                                 });
+
                                                 bottomSheetView.findViewById(R.id.call_btn).setOnClickListener(new View.OnClickListener() {
                                                     @Override
                                                     public void onClick(View view) {
@@ -628,6 +674,37 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
     private void init(){
         companionInfoList=new ArrayList<>();
         Log.d(TAG, "check: "+sh.getString(Constants.KEY_CON1,null));
+
+    }
+
+    public void inviteCompanionBox(){
+        // Initialize a new instance of LayoutInflater service
+        LayoutInflater inflater = (LayoutInflater) UserMapActivity.this.getSystemService(LAYOUT_INFLATER_SERVICE);
+
+        // Inflate the custom layout/view
+        View customView = inflater.inflate(R.layout.invite_guardian,null);
+        ConstraintLayout constraintLayout = (ConstraintLayout) customView.findViewById(R.id.invite_layout);
+      //  TextView textView=customView.findViewById(R.id.tv);
+        //textView.setText(getResources().getString(R.string.alert_mode_text));
+        invitePopWindow = new PopupWindow(
+                customView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+
+        // Set an elevation value for popup window
+        // Call requires API level 21
+        if(Build.VERSION.SDK_INT>=21){
+            invitePopWindow.setElevation(5.0f);
+        }
+        customView.findViewById(R.id.close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                invitePopWindow.dismiss();
+            }
+        });
+
+        invitePopWindow.showAtLocation(constraintLayout, Gravity.BOTTOM,0,300);
 
     }
     @Override
@@ -771,7 +848,9 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                 Toast.makeText(UserMapActivity.this, "Location updates has been stopped!!", Toast.LENGTH_SHORT).show();
                 tap_cancel.setText("I need help!");
                 alert_btn.setImageResource(R.drawable.alert_icon);
-                player.stop();
+                if(player!=null) {
+                    player.stop();
+                }
                 mPopupWindow.dismiss();
                 dialog.dismiss();
             }
@@ -981,10 +1060,10 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
          */
     }
 
+
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[]
-                                                   grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case Constants.LOCATION_REQUEST_CODE: {
                 if (grantResults.length > 0) {
@@ -1192,7 +1271,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
             dialog.setContentView(R.layout.falldetect_dialog);
             TextView textView=(TextView)dialog.findViewById(R.id.timerTextView);
             ProgressBar progressBar=(ProgressBar)dialog.findViewById(R.id.progressBar);
-            new CountDownTimer(10000,1000){
+            CountDownTimer countDownTimer=new CountDownTimer(10000,1000){
                 public void onTick(long millisUntilFinished) {
                     textView.setText(millisUntilFinished / 1000+" seconds left");
                     progressBar.setMax(10);
@@ -1258,6 +1337,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
             progressBar.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    countDownTimer.cancel();
                     dialog.dismiss();
                 }
             });

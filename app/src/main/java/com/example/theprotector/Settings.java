@@ -8,12 +8,15 @@ import android.view.View;
 import android.widget.LinearLayout;
 
 import com.example.theprotector.R;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class Settings extends AppCompatActivity implements View.OnClickListener{
+    private FloatingActionButton back_btn;
     private LinearLayout mEmergencyLayout;
     private LinearLayout mLogoutLayout;
     private LinearLayout mEditProfileLayout;
+    private LinearLayout mAboutLayout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,6 +24,10 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
         mEmergencyLayout=findViewById(R.id.emergency_contacts);
         mEmergencyLayout.setOnClickListener(this);
         mEditProfileLayout=findViewById(R.id.profileEdit);
+        back_btn=findViewById(R.id.back_btn);
+        mAboutLayout=findViewById(R.id.aboutBtn);
+        mAboutLayout.setOnClickListener(this);
+        back_btn.setOnClickListener(this);
         mEditProfileLayout.setOnClickListener(this);
         mLogoutLayout=findViewById(R.id.logout_layout);
         mLogoutLayout.setOnClickListener(this);
@@ -36,6 +43,13 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
                 startActivity(new Intent(Settings.this,AllEmergencyContacts.class));
                 break;
             case R.id.profileEdit:
+                startActivity(new Intent(Settings.this,EditProfileActivity.class));
+                break;
+            case R.id.back_btn:
+                finish();
+                break;
+            case R.id.aboutBtn:
+                startActivity(new Intent(Settings.this,AboutUs.class));
                 break;
         }
     }

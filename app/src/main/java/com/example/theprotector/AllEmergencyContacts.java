@@ -16,6 +16,7 @@ import android.widget.TextView;
 import com.example.theprotector.adapter.ContactAdapter;
 import com.example.theprotector.adapter.EmergencyContactAdapter;
 import com.example.theprotector.model.Contact;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 public class AllEmergencyContacts extends AppCompatActivity implements View.OnClickListener {
+    private FloatingActionButton back_btn;
     private RecyclerView recyclerView;
     private List<Contact> contactList;
     private ImageView addContact;
@@ -38,6 +40,13 @@ public class AllEmergencyContacts extends AppCompatActivity implements View.OnCl
         recyclerView=(RecyclerView) findViewById(R.id.savedContactsRecyclerView);
         contactList=new ArrayList<>();
         addContact=(ImageView) findViewById(R.id.addContact);
+        back_btn=findViewById(R.id.back_btn);
+        back_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
         addContact.setOnClickListener(this);
         extractData();
     }

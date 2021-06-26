@@ -63,5 +63,6 @@ dependencies {
     implementation 'com.chaos.view:pinview:1.4.4'
     compile 'com.github.jd-alexander:library:1.1.0'
     implementation 'com.hbb20:ccp:2.3.1'
+    implementation 'io.github.medyo:android-about-page:2.0.0'
 
 }

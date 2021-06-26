@@ -58,14 +58,26 @@
 
         <AutoCompleteTextView
             android:id="@+id/search_location"
-            android:layout_width="match_parent"
+            android:layout_width="280dp"
             android:layout_height="match_parent"
             android:layout_toRightOf="@+id/verticalLine"
             android:background="@null"
+            android:elevation="4dp"
             android:hint="Where are you going?"
             android:textColor="@color/white"
             android:textColorHint="@color/white"
             android:textSize="20sp" />
+        <TextView
+            android:id="@+id/end_trip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="End"
+            android:visibility="gone"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:layout_toRightOf="@+id/search_location"/>
 
     </RelativeLayout>
 

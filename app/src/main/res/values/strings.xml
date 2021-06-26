@@ -24,4 +24,7 @@
     <string name="feeling_safe_msg">I am feeling safe</string>
     <string name="stop_location_text">You are now sharing location with your companion. Please click Stop sharing to stop the location updates.</string>
     <string name="alert_mode_text">You are now in alert mode and your are sharing your location with companions. We have also notify companions and other emergency contacts to let them know that you need help </string>
+    <string name="identitiy_text">Please fill your true account details and click save button to update your identity.</string>
+    <string name="app_info">The Protector is a personal safety app that tracks the location of the user and sends the alert messages to the user’s companion and pre-registered mobile numbers whenever user clicks emergency button or power button(4 times). The app can also monitor any unusual events(such as a person falling or a mobile phone falling).</string>
+    <string name="get_started">Invite your Companions to get started</string>
 </resources>
