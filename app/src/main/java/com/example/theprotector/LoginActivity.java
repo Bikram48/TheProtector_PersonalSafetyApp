@@ -8,6 +8,8 @@ import androidx.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.example.theprotector.viewmodel.LoginRegisterViewModel;
 import com.google.android.material.textfield.TextInputEditText;
@@ -24,7 +26,6 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login2);
-        getSupportActionBar().setBackgroundDrawable(getDrawable(R.drawable.login_background));
         emailEditTxt=findViewById(R.id.emailEditTxt);
         passwordEditTxt=findViewById(R.id.passwordEditTxt);
         signupSuggestion=findViewById(R.id.loginBtn_Two);

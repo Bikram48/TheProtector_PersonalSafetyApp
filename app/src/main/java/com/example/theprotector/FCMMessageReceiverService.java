@@ -23,6 +23,7 @@ import com.example.theprotector.SingletonPattern.RequestQueueInstance;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -41,7 +42,7 @@ import java.util.Map;
 public class FCMMessageReceiverService extends FirebaseMessagingService {
     public static final String TAG="MyTag";
     public static final String URL="https://fcm.googleapis.com/fcm/send";
-    public static DatabaseReference databaseReference;
+    public static DatabaseReference databaseReference,registrationTokenRef;
 
     public FCMMessageReceiverService(){
 
@@ -73,11 +74,30 @@ public class FCMMessageReceiverService extends FirebaseMessagingService {
     }
 
     @Override
-    public void onNewToken(@NonNull String s) {
-        super.onNewToken(s);
+    public void onNewToken(@NonNull String token) {
+        super.onNewToken(token);
         Log.d(TAG, "onNewToken called");
+        //sendRegistrationToServer(token);
+    }
+/*
+    public void sendRegistrationToServer(String token){
+        FirebaseUser firebaseUser= FirebaseAuth.getInstance().getCurrentUser();
+        if(firebaseUser!=null) {
+            registrationTokenRef = FirebaseDatabase.getInstance().getReference("Tokens").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+            registrationTokenRef.setValue(token.toString()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "Token is updated successfully ");
+                    }else {
+                        Log.d(TAG, "onComplete: "+task.getException().getMessage());
+                    }
+                }
+            });
+        }
     }
 
+ */
      //This callback is called when new FCM registration token is regenerated.
     @Override
     public void onDeletedMessages() {

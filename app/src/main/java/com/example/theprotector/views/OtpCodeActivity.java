@@ -6,6 +6,7 @@ import androidx.appcompat.widget.AppCompatButton;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -37,6 +38,7 @@ public class OtpCodeActivity extends AppCompatActivity implements View.OnClickLi
         otpcode=getIntent().getStringExtra("otp_code");
         status=getIntent().getStringExtra("page");
         mSubmitBtn=findViewById(R.id.submitBtn);
+        
         mSubmitBtn.setOnClickListener(this);
     }
 
@@ -44,18 +46,20 @@ public class OtpCodeActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         Intent intent=new Intent(OtpCodeActivity.this,SignupActivity.class);
         String getOtpcode=mOtpCode.getText().toString();
-        Toast.makeText(this, mOtpCode.getText().toString(), Toast.LENGTH_SHORT).show();
+     //   Toast.makeText(this, mOtpCode.getText().toString(), Toast.LENGTH_SHORT).show();
         if(otpcode!=null){
             PhoneAuthCredential phoneAuthCredential= PhoneAuthProvider.getCredential(otpcode,getOtpcode);
             FirebaseAuth.getInstance().signInWithCredential(phoneAuthCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if(task.isSuccessful()){
-                        if(status.equals("login"))
+                        if(status.equals("login")) {
                             startActivity(new Intent(OtpCodeActivity.this, UserMapActivity.class));
-                        if(status.equals("signup"))
-                            intent.putExtra("phone",phoneNumber);
+                        }
+                        if(status.equals("signup")) {
+                            intent.putExtra("phone", phoneNumber);
                             startActivity(intent);
+                        }
                     }else{
                         Toast.makeText(OtpCodeActivity.this, "Enter the correct otp code", Toast.LENGTH_SHORT).show();
                     }

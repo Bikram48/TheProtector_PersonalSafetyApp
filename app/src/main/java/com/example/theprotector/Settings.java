@@ -37,7 +37,7 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
         switch (v.getId()){
             case R.id.logout_layout:
                 FirebaseAuth.getInstance().signOut();
-                startActivity(new Intent(Settings.this, LoginActivity.class));
+                startActivity(new Intent(Settings.this, IntroActivity.class));
                 break;
             case R.id.emergency_contacts:
                 startActivity(new Intent(Settings.this,AllEmergencyContacts.class));

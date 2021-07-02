@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ProgressBar;
 
 import com.example.theprotector.viewmodel.LoginRegisterViewModel;
@@ -29,7 +31,6 @@ public class SignupActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup2);
-        getSupportActionBar().setBackgroundDrawable(getDrawable(R.drawable.login_background));
         fullNameEditTxt=findViewById(R.id.fullNameEditTxt);
         emailEditTxt=findViewById(R.id.emailEditTxt);
         passwordEditTxt=findViewById(R.id.passwordEditTxt);
@@ -55,8 +56,8 @@ public class SignupActivity extends AppCompatActivity {
                 String email=emailEditTxt.getText().toString();
                 String password=passwordEditTxt.getText().toString();
                 loginRegisterViewModel.signup(fullName,email,phoneNumber,password);
-               // mProgressBarSignup.setVisibility(View.VISIBLE);
-               // registerBtn.setVisibility(View.GONE);
+                mProgressBarSignup.setVisibility(View.VISIBLE);
+               registerBtn.setVisibility(View.GONE);
             }
         });
         loginBtn.setOnClickListener(new View.OnClickListener() {

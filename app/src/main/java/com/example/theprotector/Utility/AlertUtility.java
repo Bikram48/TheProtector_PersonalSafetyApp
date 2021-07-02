@@ -93,11 +93,9 @@ public class AlertUtility {
                         String phone = nameandcontact[1];
                         Log.d("valueshai", requestUsername + ":phone " + phone);
                         FCMMessageReceiverService.getToken(entry.getKey(),requestUsername,context,"Your companion is in emergency please help him!! Tap here to view his last location");
-                        //smsManager.sendMultipartTextMessage(phone, null, parts, null, null);
+                        smsManager.sendMultipartTextMessage(phone, null, parts, null, null);
                     }
                 }
-
-
             return null;
         }
 

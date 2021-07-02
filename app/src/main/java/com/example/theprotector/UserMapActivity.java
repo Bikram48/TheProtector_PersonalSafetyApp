@@ -543,7 +543,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                                                                                 destinationRef.child((FirebaseAuth.getInstance().getCurrentUser().getUid())).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
                                                                                                     @Override
                                                                                                     public void onComplete(@NonNull Task<Void> task) {
-                                                                                                        emergencyList.edit().clear().commit();
+                                                                                                        emergencyList.edit().clear().apply();
                                                                                                     }
                                                                                                 });
                                                                                             }
@@ -556,6 +556,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                                                                 }
                                                             }
                                                         });
+                                                        end_trip.setVisibility(View.GONE);
                                                         dialog.dismiss();
                                                     }
                                                 });
@@ -906,6 +907,17 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
         ok_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                Map<String, ?> allEntries = emergencyList.getAll();
+                if(allEntries.size()>0) {
+                    for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
+                        String[] nameandcontact = entry.getValue().toString().split("/");
+                        String requestUsername = nameandcontact[0];
+                        String phone = nameandcontact[1];
+                        Log.d("valueshai", requestUsername + ":phone " + phone);
+                        FCMMessageReceiverService.getToken(entry.getKey(),requestUsername,UserMapActivity.this,"User feels safe now. Dont't worry!!");
+                    }
+                }
                 feeling_safe_btn.setVisibility(View.GONE);
                 locationshare_btn.setVisibility(View.VISIBLE);
                 panicBtn.setVisibility(View.VISIBLE);
@@ -1451,7 +1463,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
             t.start();
         }
     }
-
+/*
     public void send_sms() {
         System.out.println("----------------------- SEND SMS");
         try {
@@ -1468,7 +1480,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
 
 
     }
-
+*/
     public void enableStrictMode() {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 
