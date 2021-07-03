@@ -1,5 +1,7 @@
 package com.example.theprotector;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.lifecycle.Observer;
@@ -14,6 +16,7 @@ import android.view.WindowManager;
 import com.example.theprotector.viewmodel.LoginRegisterViewModel;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
@@ -39,6 +42,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
+
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -54,4 +58,5 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+
 }
