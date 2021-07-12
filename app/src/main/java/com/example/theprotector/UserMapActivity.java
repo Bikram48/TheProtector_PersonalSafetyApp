@@ -61,6 +61,12 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.theprotector.Constants;
+import com.example.theprotector.ContactListActivity;
+import com.example.theprotector.FallDetectAlgo;
+import com.example.theprotector.LocationUpdatesService;
+import com.example.theprotector.PowerButtonService;
+import com.example.theprotector.R;
 import com.example.theprotector.Utility.AlertUtility;
 import com.example.theprotector.Utility.Utilities;
 import com.example.theprotector.adapter.CompanionAdapter;
@@ -915,7 +921,7 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                         String requestUsername = nameandcontact[0];
                         String phone = nameandcontact[1];
                         Log.d("valueshai", requestUsername + ":phone " + phone);
-                        FCMMessageReceiverService.getToken(entry.getKey(),requestUsername,UserMapActivity.this,"User feels safe now. Dont't worry!!");
+                        FCMMessageReceiverService.getToken(entry.getKey(),requestUsername,UserMapActivity.this,FirebaseAuth.getInstance().getCurrentUser().getDisplayName()+" is safe now. Tap here to view his location.");
                     }
                 }
                 feeling_safe_btn.setVisibility(View.GONE);
@@ -1318,26 +1324,15 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
 
         @Override
         public void onSensorChanged(SensorEvent event) {
-            // display if buffer is ready
             flag_buffer_ready = fallDetectAlgo.get_buffer_ready();
-            if (flag_buffer_ready) {
-                //button.setText("BUFFER OK");
-            } else {
-                //button.setText("NO BUFFER");
-            }
-            // store values in buffer and visualize fall
-            flag_fall = fallDetectAlgo.set_data(event); // event has values minus gravity
+            flag_fall = fallDetectAlgo.set_data(event); 
             if (flag_fall) {
                 if (f_send_msg) {
                     f_send_msg = false;
                     dialogShow();
-                    //send_sms();
                 }
-
-                // image.setVisibility(View.VISIBLE);
             } else {
                 f_send_msg = true;
-                //image.setVisibility(View.INVISIBLE);
             }
         }
 
@@ -1361,11 +1356,10 @@ public class UserMapActivity extends FragmentActivity implements OnMapReadyCallb
                 }
 
                 public void onFinish() {
-                    if (f_send_msg) {
-                        f_send_msg = false;
+
                         playTone();
                         sendMessage();
-                    }
+                 
                     textView.setText("SOS triggered!");
                     dialog.dismiss();
                     feeling_safe_btn.setVisibility(View.VISIBLE);

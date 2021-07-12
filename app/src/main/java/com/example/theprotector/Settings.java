@@ -46,7 +46,7 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
                 startActivity(new Intent(Settings.this,EditProfileActivity.class));
                 break;
             case R.id.back_btn:
-                finish();
+                startActivity(new Intent(Settings.this,UserMapActivity.class));
                 break;
             case R.id.aboutBtn:
                 startActivity(new Intent(Settings.this,AboutUs.class));

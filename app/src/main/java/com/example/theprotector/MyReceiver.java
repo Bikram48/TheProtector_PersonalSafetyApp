@@ -40,33 +40,20 @@ public class MyReceiver extends BroadcastReceiver {
 
     private void doPowerButtonCount(Context context) {
         long ts = System.currentTimeMillis() / 1000;
-
-        //Log.d(MainActivity.TAG, "mTimeStamp = " + mTimeStamp);
-        //Log.d(MainActivity.TAG, "TS = " + ts);
-
-
         if (mCount == 0 && mTimeStamp == 0) {
             initCounter(ts);
         }
         else {
-            // compare the timestamps
             if ( (ts - mTimeStamp) <= 3 ) {
                 mTimeStamp = ts;
-
-               // Log.d(MainActivity.TAG, "Going towards...");
-
                 mCount++;
             }
             else {
-                // Cancel the operation
-               // Log.d(MainActivity.TAG, "ABORTED!!!");
-
-                // start counting again
                 initCounter(ts);
             }
         }
 
-        // Did we get 4 continuous Power Button Presses
+        // check if power button is clicked 4 times
         if (mCount == 4) {
             Intent i = new Intent(context, PowerButtonService.class);
             i.putExtra(SOS_TRIGGERED, true);
@@ -74,7 +61,7 @@ public class MyReceiver extends BroadcastReceiver {
 
             resetCounter();
 
-            // start the SOS service
+            // emergency service started
             context.startService(i);
         }
     }

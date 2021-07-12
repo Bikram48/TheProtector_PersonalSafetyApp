@@ -123,27 +123,31 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
 
         @Override
         public void onClick(View v) {
-            Integer pos=(Integer) checkBox.getTag();
-            if(contact.isSelected()){
-                total_contacts--;
-                emergencyContacts.remove(contact.getName());
-                SharedPreferences sharedPreferences = context.getSharedPreferences("emergency_contacts", Context.MODE_PRIVATE);
-                sharedPreferences.edit().remove(contact.getName()).commit();
-                contact.setSelected(false);
-            }else{
-                total_contacts++;
-                Log.d("check", "onClick: "+contact.getName());
-                contact.setSelected(true);
-                emergencyContacts.put(contact.getName().trim().toString(), contact.getNumber().toString());
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                for (String s : emergencyContacts.keySet()) {
-                    editor.putString(s, emergencyContacts.get(s));
-                }
-                //   editor.putString("contactInfo",new Gson().toJson(emergencyContacts));
-                editor.commit();
+            Integer pos = (Integer) checkBox.getTag();
+            if (emergencyContacts.size() > 4) {
+                Toast.makeText(context, "You are not allowed to add more than 5 contacts", Toast.LENGTH_SHORT).show();
+            } else {
+                if (contact.isSelected()) {
+                    total_contacts--;
+                    emergencyContacts.remove(contact.getName());
+                    SharedPreferences sharedPreferences = context.getSharedPreferences("emergency_contacts", Context.MODE_PRIVATE);
+                    sharedPreferences.edit().remove(contact.getName()).commit();
+                    contact.setSelected(false);
+                } else {
+                    total_contacts++;
+                    Log.d("check", "onClick: " + contact.getName());
+                    contact.setSelected(true);
+                    emergencyContacts.put(contact.getName().trim().toString(), contact.getNumber().toString());
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    for (String s : emergencyContacts.keySet()) {
+                        editor.putString(s, emergencyContacts.get(s));
+                    }
+                    //   editor.putString("contactInfo",new Gson().toJson(emergencyContacts));
+                    editor.commit();
 
+                }
+                activity.onItemClicked(total_contacts);
             }
-            activity.onItemClicked(total_contacts);
         }
 
     }

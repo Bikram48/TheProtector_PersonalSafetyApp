@@ -61,7 +61,6 @@ public class PowerButtonService extends Service {
                     alertUtility.new SendMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 }
 
-                // give user a haptic feedback only when Power button was pressed
                 if (intent.getIntExtra(MyReceiver.BUTTON_PRESSED, 0) == 4
                        ) {
 

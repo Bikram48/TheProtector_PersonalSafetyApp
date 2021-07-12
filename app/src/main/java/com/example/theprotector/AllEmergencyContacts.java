@@ -44,7 +44,7 @@ public class AllEmergencyContacts extends AppCompatActivity implements View.OnCl
         back_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                finish();
+                startActivity(new Intent(AllEmergencyContacts.this,Settings.class));
             }
         });
         addContact.setOnClickListener(this);

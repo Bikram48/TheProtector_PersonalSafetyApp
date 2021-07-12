@@ -49,7 +49,7 @@ public class IntroActivity extends AppCompatActivity {
         textView=findViewById(R.id.textView13);
         btnAnim= AnimationUtils.loadAnimation(getApplicationContext(),R.anim.button_animation);
         List<ScreenItem> mList=new ArrayList<>();
-        mList.add(new ScreenItem("FOLLOW ME","Allow contacts to track your journey and notify them when you arrive",R.drawable.screenone,R.drawable.cursor));
+        mList.add(new ScreenItem("FOLLOW ME","Allow contacts to track your journey and notify them when you arrive safely",R.drawable.screenone,R.drawable.cursor));
         mList.add(new ScreenItem("SOS","Quickly alert contacts with SOS button, and click of power button four times",R.drawable.screentwo,R.drawable.ic_baseline_emergency));
         screenPager=findViewById(R.id.viewPager);
         introViewPagerAdapter=new IntroViewPagerAdapter(this,mList);

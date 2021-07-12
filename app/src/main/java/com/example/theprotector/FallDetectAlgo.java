@@ -21,7 +21,7 @@ public class FallDetectAlgo extends Thread {
     private boolean flag_fall = false;
     private boolean flag_enable_algo = true;
     private final int PEAKREPTHRESH = 4;
-    private final int TSLEEP = 10; //ms time to wait for every read
+    private final int TSLEEP = 1; //ms time to wait for every read
     private final int F0SIZE = 50;
     private final int F1SIZE = 80;
     private final int BUFSIZE = F0SIZE * 10;
@@ -142,7 +142,6 @@ public class FallDetectAlgo extends Thread {
         }
     }
 
-    // peak detector
     private boolean detect_fall_phase_2(int start, int stop, double threshold) {
         double min = 10000.0;
         double max = 0.0;
@@ -156,7 +155,6 @@ public class FallDetectAlgo extends Thread {
             if (t > max) max = t;
             if (t < min) min = t;
         }
-        //System.out.println("-> "+ min + "/" + max + " " + (max-min));
         if ((max - min) > threshold) {
             System.out.println("*********** FALL P2 **********");
             return true;
@@ -178,7 +176,6 @@ public class FallDetectAlgo extends Thread {
             if (t > max) max = t;
             if (t < min) min = t;
         }
-        //System.out.println("-> "+ i +"/" + " " + min + "/" + max + " " + (max-min));
         if ((max - min) < threshold) {
             System.out.println("*********** FALL P3 **********");
             return true;

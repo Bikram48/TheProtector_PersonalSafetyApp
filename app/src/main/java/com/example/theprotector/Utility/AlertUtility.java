@@ -17,6 +17,7 @@ import com.example.theprotector.MyReceiver;
 import com.example.theprotector.SharedPreference;
 import com.example.theprotector.UserMapActivity;
 import com.example.theprotector.model.Contact;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -77,7 +78,11 @@ public class AlertUtility {
             String url = String.format("https://www.google.com/maps/search/?api=1&query=%f,%f",
                     latitude, longitude);
 
-            String msgBody = "Hey.. I am in Danger. Please, help me ASAP!! Latitudes : " + latitude + " Longitudes : " + longitude + " and my location is : " + address + " " + city + " " + state + " " + country + " " + postalCode + "" + knownName+" \n"+url;
+            String msgBody = "Hey.. I am "+ FirebaseAuth.getInstance().getCurrentUser().getDisplayName()+" and I am in Danger. Please, help me ASAP!! Latitudes : "
+                    + latitude + " Longitudes : " + longitude +
+                    " and my location is : " +
+                    address + " " + city + " " + state + " " +
+                    country + " " + postalCode + "" + knownName+" \n"+url;
             ArrayList<String> parts = smsManager.divideMessage(msgBody);
            // String msgBody="Hey.. I am in Danger. Please, help me ASAP!! Latitudes : " + latitude + " Longitudes : " + longitude + " and my location is :"+url;
             Log.d(TAG, "" + msgBody);
@@ -92,7 +97,7 @@ public class AlertUtility {
                         String requestUsername = nameandcontact[0];
                         String phone = nameandcontact[1];
                         Log.d("valueshai", requestUsername + ":phone " + phone);
-                        FCMMessageReceiverService.getToken(entry.getKey(),requestUsername,context,"Your companion is in emergency please help him!! Tap here to view his last location");
+                        FCMMessageReceiverService.getToken(entry.getKey(),requestUsername,context,FirebaseAuth.getInstance().getCurrentUser().getDisplayName()+" is in emergency please help him!! Tap here to view his last location");
                         smsManager.sendMultipartTextMessage(phone, null, parts, null, null);
                     }
                 }
